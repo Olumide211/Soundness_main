@@ -107,7 +107,8 @@ def audio_checks(label, wav: Path, edl, words=True):
 
     import difflib
 
-    model = WhisperModel("medium.en", device="cpu", compute_type="int8")
+    # large-v3 for the final verdict: medium.en flips words between near-identical mixes
+    model = WhisperModel("large-v3", device="cpu", compute_type="int8")
     mono = y.mean(0)
     x16 = resample_poly(mono, 16000, sr).astype(np.float32)
     # whole final mix in one pass (lines are heard in context, as in the film); short

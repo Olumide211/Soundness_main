@@ -1,0 +1,48 @@
+{
+ "sources": {
+  "main_drop": {
+   "t": 34.361,
+   "peak_db": -5.79,
+   "jump": 9.59,
+   "score": 6.699186989646868
+  },
+  "sparks": {
+   "t": 23.4184,
+   "peak_db": -6.09,
+   "jump": 9.38,
+   "score": 6.33544166268303
+  },
+  "bigger_hit": {
+   "t": 79.5556,
+   "peak_db": -5.46,
+   "jump": 9.44,
+   "score": 6.710758059843505
+  },
+  "small_hit": {
+   "t": 31.209,
+   "peak_db": -6.03,
+   "jump": 9.28,
+   "score": 6.269611665595313
+  }
+ },
+ "landed": {
+  "main drop": {
+   "anchor": 9.8,
+   "onset": 9.7992,
+   "frames": -0.02,
+   "peak_db": -9.2
+  },
+  "sparks": {
+   "anchor": 20.6,
+   "onset": 20.6,
+   "frames": 0.0,
+   "peak_db": -9.5
+  },
+  "bigger hit": {
+   "anchor": 21.567,
+   "onset": 21.5658,
+   "frames": -0.04,
+   "peak_db": -6.4
+  }
+ }
+}

@@ -14,13 +14,18 @@ for p in sorted(takes):
     t = takes[p]
     n_pass = sum(r["pass"] for r in t["takes"])
     ch = next(r for r in t["takes"] if r["take"] == t["chosen"])
+    meta = json.loads((audio / "vo" / "takes" / t["chosen"]).with_suffix(".json").read_text())
+    ch = dict(ch, gen_text=meta.get("gen_text", ""))
     rejects = "; ".join(sorted({x.split(" (")[0] for r in t["takes"] if not r["pass"] for x in r["reject"]}))
     tempo = plan.get("tempo", {}).get(p)
+    if ch.get("override"):
+        rejects = "manual pick: " + ch["override"]
     rows.append(f"| {p} | {t['text']} | {len(t['takes'])} | {n_pass} | `{t['chosen']}` ({ch['gen_text'] if 'gen_text' in ch else ''}) "
                 f"| {plan['at'][p]:.2f} → {plan['end'][p]:.2f} (window {plan['window'][p][1]:.2f}) "
                 f"| {('×' + str(tempo)) if tempo else '–'} | {rejects or '–'} |")
 
 src = music["sources"]
+over_table = "\n".join(f"- {p} '{takes[p]['text']}': {pct} % faster" for p, pct in plan.get("over_limit", {}).items()) or "- none"
 md = f"""# Audio · Gemini 4 Neon
 
 Everything here was made locally: no online or paid APIs. The only sources are
@@ -34,7 +39,8 @@ sound effects, risers or generated music.
 - XTTS-v2 fallback was not needed.
 - Environment: `tools/tts` (Python 3.11 venv): torch 2.11 CPU, torchaudio, torchcodec (CPU build),
   f5-tts, faster-whisper, librosa, pyloudnorm.
-- Scoring: faster-whisper `medium.en` (int8, CPU).
+- Scoring: faster-whisper `medium.en` per take. Final check: `large-v3` on the whole mix (medium.en flipped words
+  between near-identical mixes, so it is not used for the verdict). All int8 on CPU.
 
 ## Reference (`ref-clean.wav`, `ref-text.txt`)
 
@@ -47,20 +53,34 @@ because F5 conditions on the exact words spoken.
 
 ## Takes per phrase
 
-Each phrase gets 2–5 seeded takes at speed 0.9, and stops early once 2 pass. Every take is scored with faster-whisper:
-the transcript must match exactly, with no clipping, no word cut off at an edge, and no low word confidence (warble /
-mispronounced). The best passing take is trimmed to 40 ms padding (`vo/Pxx.wav`). For "Neon waits." the softest
-passing take is used. Some very short lines came out crushed (F5 under-estimates their length),
-so retries use variants (`gen_vo.py --variant N`): the same words, an explicit natural length (`fix_duration`),
-or a phonetic spelling. All takes and scores are in `vo/takes.json`, and the audio is in `vo/takes/`.
+Each line gets 2–5 seeded takes at speed 0.9, and stops early once 2 pass. Lines too long for their window were
+regenerated at speed 1.0. Every take is scored with faster-whisper `medium.en`: the transcript must match exactly
+(the one exception is "weights" for "waits", which are identical sounds), with no clipping, no word cut off at an edge, and
+no low word confidence (warble / mispronounced). The best passing take is trimmed to 40 ms padding (`vo/Pxx.wav`).
+"Neon waits." uses the softest passing take. All takes and scores are in `vo/takes.json`, and the audio is in `vo/takes/`.
 
-| id | line | takes | pass | chosen (model text) | placed (s) | tempo | rejection reasons seen |
+Very short lines were hard for F5 with this reference, because it crushes the words. Fixes used:
+- **Natural length for one-word lines** (`--variant`, F5 `fix_duration`): "Research.", "Science.".
+- **Line cut from a full sentence** (`gen_combo.py`): "Neon waits." is cut from "And neon? Neon waits.".
+  "has a nature." is cut from "Every element has a nature." (cut at 1.105 s, right after the "t" of "element").
+- **Manual picks** (`OVERRIDES` in `gen_vo.py`, reason in the table): P02 and P15, both verified on the final mix.
+
+| id | line | takes | pass | chosen (model text) | placed (s) | tempo | notes / rejection reasons seen |
 |---|---|---|---|---|---|---|---|
 {chr(10).join(rows)}
 
-Each line's first word lands exactly on its start time (the file's 40 ms pad starts 40 ms earlier), and every line
-ends inside its window, so no line crosses a cut. Subtitles that were more than 3 frames from the
-voice were moved to the word start: `then it lights the room.` 9.2 → 9.867 s, `gemini 4 neon.` 21.4 → 21.6 s.
+Each line's first word lands exactly on its start time (the file's 40 ms pad starts 40 ms earlier). Every line ends
+inside its window, measured sample-accurately on the processed voice track.
+
+**Lines compressed more than the brief's 5 %:** at the requested calm pace, these lines take longer to say than
+their window allows, even at speed 1.0. The window, no-overlap and no-cut rules were kept, so they were time-compressed
+with ffmpeg `atempo` (pitch-preserving). atempo was tested against rubberband settings on the hardest line and was the only
+method whisper read correctly both alone and in context. All of them still transcribe correctly in the final mix:
+
+{over_table}
+
+Subtitles that were more than 3 frames from the voice were moved to the word start:
+`then it lights the room.` 9.2 → 9.867 s, `gemini 4 neon.` 21.4 → 21.6 s. No cut moved.
 
 ## Music edit (`music-edit.wav`)
 
@@ -86,8 +106,9 @@ track's own hits land on the picture, with 30 ms fades / crossfades on every edg
 ## Mix (`final-mix.wav`)
 
 - VO bus (ffmpeg): `highpass 80 Hz` → `deesser` → `acompressor` 3:1 → `equalizer` +3 dB @ 4 kHz. Dry, with no reverb.
-  Line levels are matched. "And neon?" sits 3 dB softer and "Neon waits." 7 dB softer, almost a whisper.
-- Music is ducked **−10 dB** under the voice (keyed from the VO, attack 10 ms, release 250 ms) and comes back up in the gaps.
+  Line levels are matched (−18 dBFS RMS before the bus). "And neon?" sits 3 dB softer, "Neon waits." 7 dB softer
+  (almost a whisper), and "Code." 3 dB louder, because its soft final "d" sits in the busiest bar.
+- Music is ducked **−12 dB** under the voice (the top of the 8–12 dB range, keyed from the VO, attack 10 ms, release 250 ms) and comes back up in the gaps.
 - Master: gain to −14 LUFS → 4× oversampled limiter → **2-pass loudnorm** (I −14, TP −1, linear) → 48 kHz stereo, 24-bit.
   All mute windows are forced to digital zero.
 {extra}
@@ -99,7 +120,8 @@ All commands run from the project folder (`gemini-neon-film/`). `A=public/gemini
 node --experimental-strip-types scripts/export-edl.mjs            # src/edl.ts → out/edl.json (run after editing the EDL)
 $PY scripts/audio/transcribe_ref.py $A                            # ref-text.txt from ref-clean.wav
 $PY scripts/audio/gen_vo.py $A                                    # all phrases (resumes; finished takes are reused)
-$PY scripts/audio/gen_vo.py $A --only P06 --variant 2 --max-takes 3   # retry one line with a variant
+$PY scripts/audio/gen_vo.py $A --only P10 --variant 1 --max-takes 3   # retry a line with a variant (VARIANTS)
+$PY scripts/audio/gen_combo.py $A P06                             # cut a short line out of a full sentence
 $PY scripts/audio/gen_vo.py $A --only P13 --speed 1.0             # retry one line faster
 $PY scripts/audio/gen_vo.py $A --score-only                       # rescore every take, re-pick the best
 $PY scripts/audio/fit_timeline.py $A --write                      # place lines, check windows, sync subtitles

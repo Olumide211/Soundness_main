@@ -65,6 +65,9 @@ OVERRIDES = {
             "cut from 'Every element has a nature.' right after the 't' of 'element'; the 'h' of 'has' is "
             "soft, so whisper on the isolated clip hears 'as a nature' but hears 'has a nature' in context "
             "(after 'every element', as in the film). Verified on the final mix."),
+    "P15": ("P15_s100_t2.wav",
+            "clearer 'it' than t1: with t1, whisper large-v3 heard 'returns with you' in the final mix. "
+            "t2 needs 11 % compression instead of 7 %."),
 }  # "Neon waits." → softest/quietest passing take
 TAKES = 5  # max takes per phrase
 MIN_TAKES = 2  # stop early once this many takes pass

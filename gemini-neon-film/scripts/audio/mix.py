@@ -3,7 +3,7 @@ Final mix → audio/final-mix.wav (48 kHz stereo, −14 LUFS, ≤ −1 dBTP).
 
   tools/tts/bin/python scripts/audio/mix.py public/gemini-neon-pack/audio
 
-1. VO bus: each phrase (audio/vo/Pxx.wav, tempo from timeline.json (rubberband))
+1. VO bus: each phrase (audio/vo/Pxx.wav, tempo from timeline.json (atempo))
    is placed so its first word lands on its start time (audio/vo/timeline.json), then
    ffmpeg: highpass 80 Hz → de-esser → 3:1 compressor → +3 dB presence @ 4 kHz.
    Dry: no reverb.
@@ -29,7 +29,7 @@ from audio_common import SR, db, load_edl  # noqa: E402
 PAD = 0.040
 DUCK_DB = -12.0  # top of the brief's 8–12 dB range: clearest voice
 # per-line VO level (RMS dBFS before the bus): "And neon?" softer, "Neon waits." almost a whisper
-LEVELS = {"P05": -21.0, "P06": -25.0}
+LEVELS = {"P05": -21.0, "P06": -25.0, "P09": -15.0}  # "Code." +3 dB: its soft final d sits in the busiest bar
 ATTACK, RELEASE = 0.010, 0.250
 
 
@@ -38,10 +38,12 @@ def ff(*args):
 
 
 def read48(path: Path, tempo: float = 1.0) -> np.ndarray:
-    """Mono 48 kHz float, optional tempo change (rubberband, pitch + formants preserved)."""
+    """Mono 48 kHz float, optional pitch-preserving tempo change (ffmpeg atempo)."""
     with tempfile.TemporaryDirectory() as d:
         out = Path(d) / "x.wav"
-        af = f"rubberband=tempo={tempo}:formant=preserved" if abs(tempo - 1) > 1e-6 else "anull"
+        # atempo (WSOLA): tested against rubberband settings on the most compressed line (P14,
+        # ×1.45) — the only one whisper read correctly both alone and in context, best confidence
+        af = f"atempo={tempo}" if abs(tempo - 1) > 1e-6 else "anull"
         ff("-i", str(path), "-af", af, "-ac", "1", "-ar", str(SR), "-c:a", "pcm_f32le", str(out))
         y, _ = sf.read(out)
     return y

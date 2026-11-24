@@ -6,7 +6,7 @@ Fit the VO to the locked picture and sync the subtitles to the voice.
 - Each phrase file (audio/vo/Pxx.wav) has exactly 40 ms of padding, so the first
   word starts at file + 0.040 s. Each phrase is placed so its first word lands on
   its start time below, and must end before its window closes (never crossing a cut).
-- Too long → time-compress (rubberband, formant-preserved). ≤ 5 % is the brief's limit; lines that
+- Too long → time-compress (ffmpeg atempo, pitch-preserving). ≤ 5 % is the brief's limit; lines that
   still don't fit at speed 1.0 are compressed further to keep the window/cut rule, and listed as
   `over_limit` in timeline.json and in audio/README.md.
 - Subtitles: if a cue's in-time differs from its word start by more than 3 frames,
@@ -26,7 +26,7 @@ from audio_common import load_edl  # noqa: E402
 PAD = 0.040
 FPS = 30
 MAX_COMPRESS = 0.05  # the brief's limit
-MAX_HARD = 0.60  # beyond this, refuse (tested: rubberband at 1.52× still transcribes cleanly)
+MAX_HARD = 0.60  # beyond this, refuse (tested: ×1.45–1.52 still transcribes correctly)
 
 # phrase: (start of the first word, window end) — from the brief, on the locked cut
 WINDOWS = {

@@ -1,0 +1,1840 @@
+{
+  "P01": {
+    "text": "Every element",
+    "chosen": "P01_s90_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.772,
+    "takes": [
+      {
+        "take": "P01_s90_t1.wav",
+        "seed": 1010,
+        "speed": 0.9,
+        "transcript": "every element",
+        "exact": true,
+        "conf": 0.785,
+        "min_conf": 0.579,
+        "raw_peak": 1.0805,
+        "raw_rms": 0.1874,
+        "dur_trimmed": 0.727,
+        "lufs_raw": -13.13,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P01_s90_t2.wav",
+        "seed": 1011,
+        "speed": 0.9,
+        "transcript": "every element.",
+        "exact": true,
+        "conf": 0.851,
+        "min_conf": 0.706,
+        "raw_peak": 1.1243,
+        "raw_rms": 0.19,
+        "dur_trimmed": 0.772,
+        "lufs_raw": -13.64,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P02": {
+    "text": "has a nature.",
+    "chosen": "P02_cut1105_s90_t1.wav",
+    "chosen_pass": false,
+    "duration": 0.815,
+    "takes": [
+      {
+        "take": "P02_combo_s90_t1.wav",
+        "seed": 5020,
+        "speed": 0.9,
+        "transcript": "It has a nature.",
+        "exact": false,
+        "conf": 0.774,
+        "min_conf": 0.199,
+        "raw_peak": 0.8302,
+        "raw_rms": 0.1564,
+        "dur_trimmed": 0.844,
+        "lufs_raw": -15.14,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'It has a nature.'",
+          "cut off at edge",
+          "low word confidence 0.20 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P02_cut1105_s90_t1.wav",
+        "seed": 5020,
+        "speed": 0.9,
+        "transcript": "as a nature.",
+        "exact": false,
+        "conf": 0.766,
+        "min_conf": 0.615,
+        "raw_peak": 0.8302,
+        "raw_rms": 0.1585,
+        "dur_trimmed": 0.815,
+        "lufs_raw": -15.25,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as a nature.'"
+        ],
+        "override": "cut from 'Every element has a nature.' right after the 't' of 'element'; the 'h' of 'has' is soft, so whisper on the isolated clip hears 'as a nature' but hears 'has a nature' in context (after 'every element', as in the film). Verified on the final mix."
+      },
+      {
+        "take": "P02_s90_t1.wav",
+        "seed": 1020,
+        "speed": 0.9,
+        "transcript": "as in nature.",
+        "exact": false,
+        "conf": 0.76,
+        "min_conf": 0.637,
+        "raw_peak": 1.0967,
+        "raw_rms": 0.1491,
+        "dur_trimmed": 0.687,
+        "lufs_raw": -15.09,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as in nature.'"
+        ]
+      },
+      {
+        "take": "P02_s90_t2.wav",
+        "seed": 1021,
+        "speed": 0.9,
+        "transcript": "as in nature.",
+        "exact": false,
+        "conf": 0.805,
+        "min_conf": 0.743,
+        "raw_peak": 0.9831,
+        "raw_rms": 0.1373,
+        "dur_trimmed": 0.702,
+        "lufs_raw": -15.83,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as in nature.'"
+        ]
+      },
+      {
+        "take": "P02_s90_t3.wav",
+        "seed": 1022,
+        "speed": 0.9,
+        "transcript": "as in nature.",
+        "exact": false,
+        "conf": 0.853,
+        "min_conf": 0.752,
+        "raw_peak": 0.887,
+        "raw_rms": 0.1419,
+        "dur_trimmed": 0.667,
+        "lufs_raw": -15.44,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as in nature.'"
+        ]
+      },
+      {
+        "take": "P02_s90_t4.wav",
+        "seed": 1023,
+        "speed": 0.9,
+        "transcript": "as in nature.",
+        "exact": false,
+        "conf": 0.795,
+        "min_conf": 0.75,
+        "raw_peak": 0.9122,
+        "raw_rms": 0.1643,
+        "dur_trimmed": 0.717,
+        "lufs_raw": -14.72,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as in nature.'"
+        ]
+      },
+      {
+        "take": "P02_s90_t5.wav",
+        "seed": 1024,
+        "speed": 0.9,
+        "transcript": "as a nature.",
+        "exact": false,
+        "conf": 0.777,
+        "min_conf": 0.682,
+        "raw_peak": 0.9983,
+        "raw_rms": 0.1427,
+        "dur_trimmed": 0.642,
+        "lufs_raw": -14.87,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'as a nature.'"
+        ]
+      }
+    ]
+  },
+  "P03": {
+    "text": "Carbon goes deep.",
+    "chosen": "P03_s90_t1.wav",
+    "chosen_pass": true,
+    "duration": 0.94,
+    "takes": [
+      {
+        "take": "P03_s90_t1.wav",
+        "seed": 1030,
+        "speed": 0.9,
+        "transcript": "Carbon goes deep.",
+        "exact": true,
+        "conf": 0.977,
+        "min_conf": 0.945,
+        "raw_peak": 1.0404,
+        "raw_rms": 0.1443,
+        "dur_trimmed": 0.94,
+        "lufs_raw": -16.38,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P03_s90_t2.wav",
+        "seed": 1031,
+        "speed": 0.9,
+        "transcript": "Carbon goes deep.",
+        "exact": true,
+        "conf": 0.962,
+        "min_conf": 0.929,
+        "raw_peak": 0.9901,
+        "raw_rms": 0.1708,
+        "dur_trimmed": 0.96,
+        "lufs_raw": -15.56,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P04": {
+    "text": "Hydrogen moves fast.",
+    "chosen": "P04_s90_t1.wav",
+    "chosen_pass": true,
+    "duration": 1.114,
+    "takes": [
+      {
+        "take": "P04_s90_t1.wav",
+        "seed": 1040,
+        "speed": 0.9,
+        "transcript": "Hydrogen moves fast.",
+        "exact": true,
+        "conf": 0.968,
+        "min_conf": 0.943,
+        "raw_peak": 1.0388,
+        "raw_rms": 0.1513,
+        "dur_trimmed": 1.114,
+        "lufs_raw": -16.14,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P04_s90_t2.wav",
+        "seed": 1041,
+        "speed": 0.9,
+        "transcript": "Hydrogen moves fast.",
+        "exact": true,
+        "conf": 0.928,
+        "min_conf": 0.857,
+        "raw_peak": 1.1258,
+        "raw_rms": 0.1606,
+        "dur_trimmed": 1.164,
+        "lufs_raw": -15.2,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P05": {
+    "text": "And neon?",
+    "chosen": "P05_s90_t4.wav",
+    "chosen_pass": true,
+    "duration": 0.895,
+    "takes": [
+      {
+        "take": "P05_s90_t1.wav",
+        "seed": 1050,
+        "speed": 0.9,
+        "transcript": "and noon.",
+        "exact": false,
+        "conf": 0.461,
+        "min_conf": 0.363,
+        "raw_peak": 0.6993,
+        "raw_rms": 0.1209,
+        "dur_trimmed": 0.955,
+        "lufs_raw": -15.57,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'and noon.'"
+        ]
+      },
+      {
+        "take": "P05_s90_t2.wav",
+        "seed": 1051,
+        "speed": 0.9,
+        "transcript": "Annun.",
+        "exact": false,
+        "conf": 0.306,
+        "min_conf": 0.306,
+        "raw_peak": 0.8273,
+        "raw_rms": 0.1422,
+        "dur_trimmed": 0.955,
+        "lufs_raw": -14.17,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Annun.'",
+          "low word confidence 0.31 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P05_s90_t3.wav",
+        "seed": 1052,
+        "speed": 0.9,
+        "transcript": "A neon.",
+        "exact": false,
+        "conf": 0.55,
+        "min_conf": 0.501,
+        "raw_peak": 0.8911,
+        "raw_rms": 0.1365,
+        "dur_trimmed": 0.79,
+        "lufs_raw": -13.4,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'A neon.'"
+        ]
+      },
+      {
+        "take": "P05_s90_t4.wav",
+        "seed": 1053,
+        "speed": 0.9,
+        "transcript": "and neon",
+        "exact": true,
+        "conf": 0.653,
+        "min_conf": 0.366,
+        "raw_peak": 0.9974,
+        "raw_rms": 0.1702,
+        "dur_trimmed": 0.895,
+        "lufs_raw": -12.23,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P05_s90_t5.wav",
+        "seed": 1054,
+        "speed": 0.9,
+        "transcript": "And noon.",
+        "exact": false,
+        "conf": 0.342,
+        "min_conf": 0.143,
+        "raw_peak": 0.9434,
+        "raw_rms": 0.1535,
+        "dur_trimmed": 0.825,
+        "lufs_raw": -12.66,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'And noon.'",
+          "low word confidence 0.14 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P06": {
+    "text": "Neon waits.",
+    "chosen": "P06_combo_s90_t4.wav",
+    "chosen_pass": true,
+    "duration": 0.957,
+    "takes": [
+      {
+        "take": "P06_combo_s90_t1.wav",
+        "seed": 5060,
+        "speed": 0.9,
+        "transcript": "Neon weights.",
+        "exact": true,
+        "conf": 0.527,
+        "min_conf": 0.419,
+        "raw_peak": 1.3112,
+        "raw_rms": 0.1949,
+        "dur_trimmed": 1.137,
+        "lufs_raw": -12.05,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P06_combo_s90_t2.wav",
+        "seed": 5061,
+        "speed": 0.9,
+        "transcript": "and neon weights",
+        "exact": false,
+        "conf": 0.672,
+        "min_conf": 0.345,
+        "raw_peak": 0.8329,
+        "raw_rms": 0.1652,
+        "dur_trimmed": 1.117,
+        "lufs_raw": -14.17,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'and neon weights'",
+          "low word confidence 0.34 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_combo_s90_t3.wav",
+        "seed": 5062,
+        "speed": 0.9,
+        "transcript": "minimum weights.",
+        "exact": false,
+        "conf": 0.838,
+        "min_conf": 0.733,
+        "raw_peak": 0.9739,
+        "raw_rms": 0.1986,
+        "dur_trimmed": 0.957,
+        "lufs_raw": -13.8,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'minimum weights.'",
+          "cut off at edge"
+        ]
+      },
+      {
+        "take": "P06_combo_s90_t4.wav",
+        "seed": 5063,
+        "speed": 0.9,
+        "transcript": "neon weights",
+        "exact": true,
+        "conf": 0.727,
+        "min_conf": 0.661,
+        "raw_peak": 1.4995,
+        "raw_rms": 0.1891,
+        "dur_trimmed": 0.957,
+        "lufs_raw": -11.61,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P06_s90_t1.wav",
+        "seed": 1060,
+        "speed": 0.9,
+        "transcript": "Neon Wait.",
+        "exact": false,
+        "conf": 0.349,
+        "min_conf": 0.132,
+        "raw_peak": 0.8234,
+        "raw_rms": 0.1563,
+        "dur_trimmed": 0.554,
+        "lufs_raw": -15.39,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Neon Wait.'",
+          "low word confidence 0.13 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_s90_t2.wav",
+        "seed": 1061,
+        "speed": 0.9,
+        "transcript": "Nio",
+        "exact": false,
+        "conf": 0.439,
+        "min_conf": 0.439,
+        "raw_peak": 0.771,
+        "raw_rms": 0.1317,
+        "dur_trimmed": 0.464,
+        "lufs_raw": -15.78,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Nio'"
+        ]
+      },
+      {
+        "take": "P06_s90_t3.wav",
+        "seed": 1062,
+        "speed": 0.9,
+        "transcript": "Neo",
+        "exact": false,
+        "conf": 0.322,
+        "min_conf": 0.322,
+        "raw_peak": 0.7662,
+        "raw_rms": 0.1187,
+        "dur_trimmed": 0.484,
+        "lufs_raw": -16.84,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Neo'",
+          "low word confidence 0.32 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_s90_t4.wav",
+        "seed": 1063,
+        "speed": 0.9,
+        "transcript": "neon way",
+        "exact": false,
+        "conf": 0.262,
+        "min_conf": 0.225,
+        "raw_peak": 0.7602,
+        "raw_rms": 0.1533,
+        "dur_trimmed": 0.569,
+        "lufs_raw": -15.57,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'neon way'",
+          "low word confidence 0.23 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_s90_t5.wav",
+        "seed": 1064,
+        "speed": 0.9,
+        "transcript": "NEOM",
+        "exact": false,
+        "conf": 0.575,
+        "min_conf": 0.575,
+        "raw_peak": 0.8509,
+        "raw_rms": 0.1485,
+        "dur_trimmed": 0.494,
+        "lufs_raw": -14.9,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'NEOM'"
+        ]
+      },
+      {
+        "take": "P06_v1_s90_t1.wav",
+        "seed": 1160,
+        "speed": 0.9,
+        "transcript": "Neon wait",
+        "exact": false,
+        "conf": 0.414,
+        "min_conf": 0.181,
+        "raw_peak": 0.9203,
+        "raw_rms": 0.169,
+        "dur_trimmed": 0.536,
+        "lufs_raw": -14.31,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Neon wait'",
+          "low word confidence 0.18 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_v1_s90_t2.wav",
+        "seed": 1161,
+        "speed": 0.9,
+        "transcript": "Neon weights.",
+        "exact": true,
+        "conf": 0.282,
+        "min_conf": 0.131,
+        "raw_peak": 0.8664,
+        "raw_rms": 0.1373,
+        "dur_trimmed": 0.591,
+        "lufs_raw": -15.91,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "low word confidence 0.13 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_v1_s90_t3.wav",
+        "seed": 1162,
+        "speed": 0.9,
+        "transcript": "neon wait",
+        "exact": false,
+        "conf": 0.353,
+        "min_conf": 0.161,
+        "raw_peak": 0.7194,
+        "raw_rms": 0.1478,
+        "dur_trimmed": 0.536,
+        "lufs_raw": -15.49,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'neon wait'",
+          "low word confidence 0.16 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P06_v2_s90_t1.wav",
+        "seed": 1260,
+        "speed": 0.9,
+        "transcript": "NEON WEIGHT",
+        "exact": false,
+        "conf": 0.519,
+        "min_conf": 0.46,
+        "raw_peak": 0.8648,
+        "raw_rms": 0.1572,
+        "dur_trimmed": 0.551,
+        "lufs_raw": -15.05,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'NEON WEIGHT'"
+        ]
+      },
+      {
+        "take": "P06_v2_s90_t2.wav",
+        "seed": 1261,
+        "speed": 0.9,
+        "transcript": "New",
+        "exact": false,
+        "conf": 0.059,
+        "min_conf": 0.059,
+        "raw_peak": 0.6598,
+        "raw_rms": 0.1051,
+        "dur_trimmed": 0.401,
+        "lufs_raw": -17.33,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'New'",
+          "low word confidence 0.06 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P07": {
+    "text": "Until you give it a charge.",
+    "chosen": "P07_s100_t1.wav",
+    "chosen_pass": true,
+    "duration": 1.408,
+    "takes": [
+      {
+        "take": "P07_fit_s90_t1.wav",
+        "seed": 1070,
+        "speed": 0.9,
+        "transcript": "and give it a chart.",
+        "exact": false,
+        "conf": 0.738,
+        "min_conf": 0.35,
+        "raw_peak": 0.816,
+        "raw_rms": 0.102,
+        "dur_trimmed": 0.829,
+        "lufs_raw": -19.3,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'and give it a chart.'",
+          "low word confidence 0.35 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P07_fit_s90_t2.wav",
+        "seed": 1071,
+        "speed": 0.9,
+        "transcript": "And you give it a charge.",
+        "exact": false,
+        "conf": 0.848,
+        "min_conf": 0.309,
+        "raw_peak": 0.9483,
+        "raw_rms": 0.1151,
+        "dur_trimmed": 0.844,
+        "lufs_raw": -18.34,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'And you give it a charge.'",
+          "low word confidence 0.31 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P07_fit_s90_t3.wav",
+        "seed": 1072,
+        "speed": 0.9,
+        "transcript": "Do you give a",
+        "exact": false,
+        "conf": 0.768,
+        "min_conf": 0.333,
+        "raw_peak": 0.692,
+        "raw_rms": 0.1139,
+        "dur_trimmed": 0.674,
+        "lufs_raw": -17.58,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Do you give a'",
+          "cut off at edge",
+          "low word confidence 0.33 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P07_fit_s90_t4.wav",
+        "seed": 1073,
+        "speed": 0.9,
+        "transcript": "until you",
+        "exact": false,
+        "conf": 0.815,
+        "min_conf": 0.644,
+        "raw_peak": 0.908,
+        "raw_rms": 0.1568,
+        "dur_trimmed": 0.769,
+        "lufs_raw": -14.82,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'until you'"
+        ]
+      },
+      {
+        "take": "P07_s100_t1.wav",
+        "seed": 2070,
+        "speed": 1.0,
+        "transcript": "until you give it a charge.",
+        "exact": true,
+        "conf": 0.974,
+        "min_conf": 0.857,
+        "raw_peak": 0.9698,
+        "raw_rms": 0.132,
+        "dur_trimmed": 1.408,
+        "lufs_raw": -16.49,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P07_s100_t2.wav",
+        "seed": 2071,
+        "speed": 1.0,
+        "transcript": "until you give it a charge.",
+        "exact": true,
+        "conf": 0.977,
+        "min_conf": 0.897,
+        "raw_peak": 1.1286,
+        "raw_rms": 0.1455,
+        "dur_trimmed": 1.418,
+        "lufs_raw": -15.59,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P07_s90_t1.wav",
+        "seed": 1070,
+        "speed": 0.9,
+        "transcript": "until you give it a charge.",
+        "exact": true,
+        "conf": 0.975,
+        "min_conf": 0.877,
+        "raw_peak": 0.9722,
+        "raw_rms": 0.1323,
+        "dur_trimmed": 1.44,
+        "lufs_raw": -15.89,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P07_s90_t2.wav",
+        "seed": 1071,
+        "speed": 0.9,
+        "transcript": "until you give it a charge.",
+        "exact": true,
+        "conf": 0.97,
+        "min_conf": 0.849,
+        "raw_peak": 0.8604,
+        "raw_rms": 0.1276,
+        "dur_trimmed": 1.435,
+        "lufs_raw": -16.44,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      }
+    ]
+  },
+  "P08": {
+    "text": "Then it lights the room.",
+    "chosen": "P08_s100_t1.wav",
+    "chosen_pass": true,
+    "duration": 1.046,
+    "takes": [
+      {
+        "take": "P08_s100_t1.wav",
+        "seed": 2080,
+        "speed": 1.0,
+        "transcript": "Then it lights the room.",
+        "exact": true,
+        "conf": 0.881,
+        "min_conf": 0.442,
+        "raw_peak": 0.987,
+        "raw_rms": 0.1428,
+        "dur_trimmed": 1.046,
+        "lufs_raw": -15.35,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P08_s100_t2.wav",
+        "seed": 2081,
+        "speed": 1.0,
+        "transcript": "Then it lights the room",
+        "exact": true,
+        "conf": 0.911,
+        "min_conf": 0.585,
+        "raw_peak": 1.0864,
+        "raw_rms": 0.1552,
+        "dur_trimmed": 1.211,
+        "lufs_raw": -15.36,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      }
+    ]
+  },
+  "P12": {
+    "text": "A million tokens.",
+    "chosen": "P12_s100_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.898,
+    "takes": [
+      {
+        "take": "P12_s100_t1.wav",
+        "seed": 2120,
+        "speed": 1.0,
+        "transcript": "A million took an",
+        "exact": false,
+        "conf": 0.549,
+        "min_conf": 0.374,
+        "raw_peak": 0.8991,
+        "raw_rms": 0.1662,
+        "dur_trimmed": 0.813,
+        "lufs_raw": -14.68,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'A million took an'"
+        ]
+      },
+      {
+        "take": "P12_s100_t2.wav",
+        "seed": 2121,
+        "speed": 1.0,
+        "transcript": "A million tokens.",
+        "exact": true,
+        "conf": 0.793,
+        "min_conf": 0.421,
+        "raw_peak": 1.0165,
+        "raw_rms": 0.1603,
+        "dur_trimmed": 0.898,
+        "lufs_raw": -15.43,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P12_s100_t3.wav",
+        "seed": 2122,
+        "speed": 1.0,
+        "transcript": "million tokens",
+        "exact": false,
+        "conf": 0.573,
+        "min_conf": 0.328,
+        "raw_peak": 0.8675,
+        "raw_rms": 0.1547,
+        "dur_trimmed": 0.838,
+        "lufs_raw": -15.34,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'million tokens'",
+          "low word confidence 0.33 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P12_s100_t4.wav",
+        "seed": 2123,
+        "speed": 1.0,
+        "transcript": "million tokens",
+        "exact": false,
+        "conf": 0.566,
+        "min_conf": 0.141,
+        "raw_peak": 0.8085,
+        "raw_rms": 0.1281,
+        "dur_trimmed": 0.838,
+        "lufs_raw": -17.23,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'million tokens'",
+          "low word confidence 0.14 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P12_s100_t5.wav",
+        "seed": 2124,
+        "speed": 1.0,
+        "transcript": "a million token",
+        "exact": false,
+        "conf": 0.681,
+        "min_conf": 0.243,
+        "raw_peak": 0.7854,
+        "raw_rms": 0.1136,
+        "dur_trimmed": 0.743,
+        "lufs_raw": -17.64,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'a million token'",
+          "low word confidence 0.24 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P14": {
+    "text": "Change course mid-task.",
+    "chosen": "P14_s100_t4.wav",
+    "chosen_pass": true,
+    "duration": 1.177,
+    "takes": [
+      {
+        "take": "P14_s100_t1.wav",
+        "seed": 2140,
+        "speed": 1.0,
+        "transcript": "Change cosmic task.",
+        "exact": false,
+        "conf": 0.467,
+        "min_conf": 0.074,
+        "raw_peak": 0.9115,
+        "raw_rms": 0.1408,
+        "dur_trimmed": 1.217,
+        "lufs_raw": -16.33,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'Change cosmic task.'",
+          "low word confidence 0.07 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P14_s100_t2.wav",
+        "seed": 2141,
+        "speed": 1.0,
+        "transcript": "Change cosmic tasks.",
+        "exact": false,
+        "conf": 0.424,
+        "min_conf": 0.201,
+        "raw_peak": 1.1951,
+        "raw_rms": 0.1439,
+        "dur_trimmed": 1.127,
+        "lufs_raw": -15.53,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'Change cosmic tasks.'",
+          "low word confidence 0.20 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P14_s100_t3.wav",
+        "seed": 2142,
+        "speed": 1.0,
+        "transcript": "change course mid-task",
+        "exact": true,
+        "conf": 0.663,
+        "min_conf": 0.271,
+        "raw_peak": 1.1038,
+        "raw_rms": 0.1469,
+        "dur_trimmed": 1.217,
+        "lufs_raw": -16.17,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "low word confidence 0.27 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P14_s100_t4.wav",
+        "seed": 2143,
+        "speed": 1.0,
+        "transcript": "Change course mid task.",
+        "exact": true,
+        "conf": 0.679,
+        "min_conf": 0.458,
+        "raw_peak": 0.9832,
+        "raw_rms": 0.1489,
+        "dur_trimmed": 1.177,
+        "lufs_raw": -15.81,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P14_s100_t5.wav",
+        "seed": 2144,
+        "speed": 1.0,
+        "transcript": "Change cosmic task.",
+        "exact": false,
+        "conf": 0.55,
+        "min_conf": 0.303,
+        "raw_peak": 1.2158,
+        "raw_rms": 0.1448,
+        "dur_trimmed": 1.087,
+        "lufs_raw": -15.46,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'Change cosmic task.'",
+          "low word confidence 0.30 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P14_v1_s90_t1.wav",
+        "seed": 1240,
+        "speed": 0.9,
+        "transcript": "Change course test",
+        "exact": false,
+        "conf": 0.735,
+        "min_conf": 0.62,
+        "raw_peak": 0.9445,
+        "raw_rms": 0.1336,
+        "dur_trimmed": 0.859,
+        "lufs_raw": -16.57,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Change course test'"
+        ]
+      },
+      {
+        "take": "P14_v1_s90_t2.wav",
+        "seed": 1241,
+        "speed": 0.9,
+        "transcript": "Change commit task.",
+        "exact": false,
+        "conf": 0.724,
+        "min_conf": 0.667,
+        "raw_peak": 1.2792,
+        "raw_rms": 0.1265,
+        "dur_trimmed": 0.894,
+        "lufs_raw": -17.44,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Change commit task.'"
+        ]
+      },
+      {
+        "take": "P14_v1_s90_t3.wav",
+        "seed": 1242,
+        "speed": 0.9,
+        "transcript": "Change course mid-test.",
+        "exact": false,
+        "conf": 0.676,
+        "min_conf": 0.226,
+        "raw_peak": 1.0751,
+        "raw_rms": 0.1409,
+        "dur_trimmed": 0.919,
+        "lufs_raw": -16.43,
+        "pass": false,
+        "fits": false,
+        "reject": [
+          "transcript 'Change course mid-test.'",
+          "low word confidence 0.23 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P14_v2_s90_t1.wav",
+        "seed": 1340,
+        "speed": 0.9,
+        "transcript": "change quintessence.",
+        "exact": false,
+        "conf": 0.613,
+        "min_conf": 0.57,
+        "raw_peak": 1.0005,
+        "raw_rms": 0.1203,
+        "dur_trimmed": 0.729,
+        "lufs_raw": -16.83,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'change quintessence.'"
+        ]
+      },
+      {
+        "take": "P14_v2_s90_t2.wav",
+        "seed": 1341,
+        "speed": 0.9,
+        "transcript": "Change course.",
+        "exact": false,
+        "conf": 0.833,
+        "min_conf": 0.765,
+        "raw_peak": 0.7526,
+        "raw_rms": 0.0905,
+        "dur_trimmed": 0.674,
+        "lufs_raw": -18.82,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Change course.'"
+        ]
+      },
+      {
+        "take": "P14_v2_s90_t3.wav",
+        "seed": 1342,
+        "speed": 0.9,
+        "transcript": "Change course.",
+        "exact": false,
+        "conf": 0.832,
+        "min_conf": 0.742,
+        "raw_peak": 1.1811,
+        "raw_rms": 0.1349,
+        "dur_trimmed": 0.829,
+        "lufs_raw": -15.67,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Change course.'"
+        ]
+      }
+    ]
+  },
+  "P15": {
+    "text": "It turns with you.",
+    "chosen": "P15_s100_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.907,
+    "takes": [
+      {
+        "take": "P15_s100_t1.wav",
+        "seed": 2150,
+        "speed": 1.0,
+        "transcript": "It turns with you.",
+        "exact": true,
+        "conf": 0.863,
+        "min_conf": 0.494,
+        "raw_peak": 0.9326,
+        "raw_rms": 0.116,
+        "dur_trimmed": 0.877,
+        "lufs_raw": -18.11,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P15_s100_t2.wav",
+        "seed": 2151,
+        "speed": 1.0,
+        "transcript": "It turns with you.",
+        "exact": true,
+        "conf": 0.955,
+        "min_conf": 0.859,
+        "raw_peak": 1.0827,
+        "raw_rms": 0.1314,
+        "dur_trimmed": 0.907,
+        "lufs_raw": -16.87,
+        "pass": true,
+        "fits": false,
+        "reject": [],
+        "override": "clearer 'it' than t1: with t1, whisper large-v3 heard 'returns with you' in the final mix. t2 needs 11 % compression instead of 7 %."
+      }
+    ]
+  },
+  "P16": {
+    "text": "Less making it up.",
+    "chosen": "P16_s100_t3.wav",
+    "chosen_pass": true,
+    "duration": 0.907,
+    "takes": [
+      {
+        "take": "P16_s100_t1.wav",
+        "seed": 2160,
+        "speed": 1.0,
+        "transcript": "Less making it up",
+        "exact": true,
+        "conf": 0.823,
+        "min_conf": 0.318,
+        "raw_peak": 0.9147,
+        "raw_rms": 0.1411,
+        "dur_trimmed": 0.797,
+        "lufs_raw": -16.23,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "low word confidence 0.32 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P16_s100_t2.wav",
+        "seed": 2161,
+        "speed": 1.0,
+        "transcript": "Less making it up",
+        "exact": true,
+        "conf": 0.887,
+        "min_conf": 0.586,
+        "raw_peak": 1.0598,
+        "raw_rms": 0.142,
+        "dur_trimmed": 0.892,
+        "lufs_raw": -16.53,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P16_s100_t3.wav",
+        "seed": 2162,
+        "speed": 1.0,
+        "transcript": "Less making it up",
+        "exact": true,
+        "conf": 0.916,
+        "min_conf": 0.688,
+        "raw_peak": 1.1569,
+        "raw_rms": 0.1553,
+        "dur_trimmed": 0.907,
+        "lufs_raw": -15.48,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P17": {
+    "text": "More getting it done.",
+    "chosen": "P17_s100_t1.wav",
+    "chosen_pass": true,
+    "duration": 1.024,
+    "takes": [
+      {
+        "take": "P17_s100_t1.wav",
+        "seed": 2170,
+        "speed": 1.0,
+        "transcript": "More getting it done.",
+        "exact": true,
+        "conf": 0.943,
+        "min_conf": 0.849,
+        "raw_peak": 1.0396,
+        "raw_rms": 0.1669,
+        "dur_trimmed": 1.024,
+        "lufs_raw": -14.91,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P17_s100_t2.wav",
+        "seed": 2171,
+        "speed": 1.0,
+        "transcript": "More getting it done",
+        "exact": true,
+        "conf": 0.921,
+        "min_conf": 0.739,
+        "raw_peak": 0.8676,
+        "raw_rms": 0.1465,
+        "dur_trimmed": 1.079,
+        "lufs_raw": -16.4,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P18": {
+    "text": "Depth used to cost time.",
+    "chosen": "P18_s100_t2.wav",
+    "chosen_pass": true,
+    "duration": 1.186,
+    "takes": [
+      {
+        "take": "P18_s100_t1.wav",
+        "seed": 2180,
+        "speed": 1.0,
+        "transcript": "Depth used to cost time.",
+        "exact": true,
+        "conf": 0.951,
+        "min_conf": 0.908,
+        "raw_peak": 1.2503,
+        "raw_rms": 0.1451,
+        "dur_trimmed": 1.251,
+        "lufs_raw": -16.81,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P18_s100_t2.wav",
+        "seed": 2181,
+        "speed": 1.0,
+        "transcript": "Depth used to cost time",
+        "exact": true,
+        "conf": 0.936,
+        "min_conf": 0.778,
+        "raw_peak": 1.0826,
+        "raw_rms": 0.1216,
+        "dur_trimmed": 1.186,
+        "lufs_raw": -18.3,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P09": {
+    "text": "Code.",
+    "chosen": "P09_s95_t1.wav",
+    "chosen_pass": true,
+    "duration": 0.512,
+    "takes": [
+      {
+        "take": "P09_s90_t1.wav",
+        "seed": 1090,
+        "speed": 0.9,
+        "transcript": "code",
+        "exact": true,
+        "conf": 0.57,
+        "min_conf": 0.57,
+        "raw_peak": 0.8907,
+        "raw_rms": 0.1041,
+        "dur_trimmed": 0.462,
+        "lufs_raw": -16.3,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P09_s90_t2.wav",
+        "seed": 1091,
+        "speed": 0.9,
+        "transcript": "Good.",
+        "exact": false,
+        "conf": 0.229,
+        "min_conf": 0.229,
+        "raw_peak": 0.9702,
+        "raw_rms": 0.1132,
+        "dur_trimmed": 0.477,
+        "lufs_raw": -15.56,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Good.'",
+          "low word confidence 0.23 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P09_s90_t3.wav",
+        "seed": 1092,
+        "speed": 0.9,
+        "transcript": "Code",
+        "exact": true,
+        "conf": 0.363,
+        "min_conf": 0.363,
+        "raw_peak": 0.9875,
+        "raw_rms": 0.1452,
+        "dur_trimmed": 0.492,
+        "lufs_raw": -13.34,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P09_s95_t1.wav",
+        "seed": 2040,
+        "speed": 0.95,
+        "transcript": "code",
+        "exact": true,
+        "conf": 0.641,
+        "min_conf": 0.641,
+        "raw_peak": 0.7502,
+        "raw_rms": 0.1221,
+        "dur_trimmed": 0.512,
+        "lufs_raw": -14.89,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P09_s95_t2.wav",
+        "seed": 2041,
+        "speed": 0.95,
+        "transcript": "code",
+        "exact": true,
+        "conf": 0.493,
+        "min_conf": 0.493,
+        "raw_peak": 1.2582,
+        "raw_rms": 0.1403,
+        "dur_trimmed": 0.457,
+        "lufs_raw": -13.94,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P09_v1_s90_t1.wav",
+        "seed": 1190,
+        "speed": 0.9,
+        "transcript": "Good",
+        "exact": false,
+        "conf": 0.364,
+        "min_conf": 0.364,
+        "raw_peak": 0.6203,
+        "raw_rms": 0.0924,
+        "dur_trimmed": 0.246,
+        "lufs_raw": -17.72,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Good'"
+        ]
+      },
+      {
+        "take": "P09_v1_s90_t2.wav",
+        "seed": 1191,
+        "speed": 0.9,
+        "transcript": "Good",
+        "exact": false,
+        "conf": 0.074,
+        "min_conf": 0.074,
+        "raw_peak": 0.8453,
+        "raw_rms": 0.125,
+        "dur_trimmed": 0.321,
+        "lufs_raw": -16.26,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Good'",
+          "low word confidence 0.07 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P09_v1_s90_t3.wav",
+        "seed": 1192,
+        "speed": 0.9,
+        "transcript": "code",
+        "exact": true,
+        "conf": 0.224,
+        "min_conf": 0.224,
+        "raw_peak": 0.6798,
+        "raw_rms": 0.0835,
+        "dur_trimmed": 0.336,
+        "lufs_raw": -19.98,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "low word confidence 0.22 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P10": {
+    "text": "Research.",
+    "chosen": "P10_v1_s90_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.399,
+    "takes": [
+      {
+        "take": "P10_s90_t1.wav",
+        "seed": 1100,
+        "speed": 0.9,
+        "transcript": "Research.",
+        "exact": true,
+        "conf": 0.542,
+        "min_conf": 0.542,
+        "raw_peak": 1.336,
+        "raw_rms": 0.153,
+        "dur_trimmed": 0.84,
+        "lufs_raw": -10.68,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P10_s90_t2.wav",
+        "seed": 1101,
+        "speed": 0.9,
+        "transcript": "Research.",
+        "exact": true,
+        "conf": 0.654,
+        "min_conf": 0.654,
+        "raw_peak": 1.1878,
+        "raw_rms": 0.1618,
+        "dur_trimmed": 0.995,
+        "lufs_raw": -11.24,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P10_v1_s90_t1.wav",
+        "seed": 1200,
+        "speed": 0.9,
+        "transcript": "research.",
+        "exact": true,
+        "conf": 0.278,
+        "min_conf": 0.278,
+        "raw_peak": 0.7261,
+        "raw_rms": 0.0673,
+        "dur_trimmed": 0.334,
+        "lufs_raw": -19.27,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "low word confidence 0.28 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P10_v1_s90_t2.wav",
+        "seed": 1201,
+        "speed": 0.9,
+        "transcript": "research.",
+        "exact": true,
+        "conf": 0.416,
+        "min_conf": 0.416,
+        "raw_peak": 0.6273,
+        "raw_rms": 0.0881,
+        "dur_trimmed": 0.399,
+        "lufs_raw": -18.32,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P10_v1_s90_t3.wav",
+        "seed": 1202,
+        "speed": 0.9,
+        "transcript": "Please, sir.",
+        "exact": false,
+        "conf": 0.464,
+        "min_conf": 0.115,
+        "raw_peak": 0.7507,
+        "raw_rms": 0.0787,
+        "dur_trimmed": 0.374,
+        "lufs_raw": -19.22,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Please, sir.'",
+          "low word confidence 0.11 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P11": {
+    "text": "Science.",
+    "chosen": "P11_v1_s90_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.389,
+    "takes": [
+      {
+        "take": "P11_s90_t1.wav",
+        "seed": 1110,
+        "speed": 0.9,
+        "transcript": "Science.",
+        "exact": true,
+        "conf": 0.735,
+        "min_conf": 0.735,
+        "raw_peak": 0.9595,
+        "raw_rms": 0.1044,
+        "dur_trimmed": 0.747,
+        "lufs_raw": -14.73,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P11_s90_t2.wav",
+        "seed": 1111,
+        "speed": 0.9,
+        "transcript": "Science.",
+        "exact": true,
+        "conf": 0.705,
+        "min_conf": 0.705,
+        "raw_peak": 1.5621,
+        "raw_rms": 0.1588,
+        "dur_trimmed": 0.897,
+        "lufs_raw": -11.36,
+        "pass": true,
+        "fits": false,
+        "reject": []
+      },
+      {
+        "take": "P11_v1_s90_t1.wav",
+        "seed": 1210,
+        "speed": 0.9,
+        "transcript": "sign",
+        "exact": false,
+        "conf": 0.043,
+        "min_conf": 0.043,
+        "raw_peak": 0.8161,
+        "raw_rms": 0.1289,
+        "dur_trimmed": 0.394,
+        "lufs_raw": -15.52,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'sign'",
+          "low word confidence 0.04 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P11_v1_s90_t2.wav",
+        "seed": 1211,
+        "speed": 0.9,
+        "transcript": "Science",
+        "exact": true,
+        "conf": 0.396,
+        "min_conf": 0.396,
+        "raw_peak": 0.4482,
+        "raw_rms": 0.0602,
+        "dur_trimmed": 0.389,
+        "lufs_raw": -21.75,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P11_v1_s90_t3.wav",
+        "seed": 1212,
+        "speed": 0.9,
+        "transcript": "",
+        "exact": false,
+        "conf": 0.0,
+        "min_conf": 0.0,
+        "raw_peak": 0.8479,
+        "raw_rms": 0.1402,
+        "dur_trimmed": 0.464,
+        "lufs_raw": -14.85,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript ''",
+          "low word confidence 0.00 (warble/mispronounced)"
+        ]
+      }
+    ]
+  },
+  "P13": {
+    "text": "One thought.",
+    "chosen": "P13_s90_t4.wav",
+    "chosen_pass": true,
+    "duration": 0.583,
+    "takes": [
+      {
+        "take": "P13_s90_t1.wav",
+        "seed": 1130,
+        "speed": 0.9,
+        "transcript": "One third",
+        "exact": false,
+        "conf": 0.594,
+        "min_conf": 0.499,
+        "raw_peak": 0.9467,
+        "raw_rms": 0.1656,
+        "dur_trimmed": 0.533,
+        "lufs_raw": -13.96,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'One third'"
+        ]
+      },
+      {
+        "take": "P13_s90_t2.wav",
+        "seed": 1131,
+        "speed": 0.9,
+        "transcript": "",
+        "exact": false,
+        "conf": 0.0,
+        "min_conf": 0.0,
+        "raw_peak": 0.0,
+        "raw_rms": 0.0,
+        "dur_trimmed": 0.843,
+        "lufs_raw": -Infinity,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript ''",
+          "cut off at edge",
+          "low word confidence 0.00 (warble/mispronounced)"
+        ]
+      },
+      {
+        "take": "P13_s90_t3.wav",
+        "seed": 1132,
+        "speed": 0.9,
+        "transcript": "One thought.",
+        "exact": true,
+        "conf": 0.788,
+        "min_conf": 0.738,
+        "raw_peak": 1.0917,
+        "raw_rms": 0.1521,
+        "dur_trimmed": 0.523,
+        "lufs_raw": -14.23,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P13_s90_t4.wav",
+        "seed": 1133,
+        "speed": 0.9,
+        "transcript": "One thought.",
+        "exact": true,
+        "conf": 0.902,
+        "min_conf": 0.881,
+        "raw_peak": 1.0983,
+        "raw_rms": 0.1558,
+        "dur_trimmed": 0.583,
+        "lufs_raw": -14.94,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P19": {
+    "text": "Not anymore.",
+    "chosen": "P19_s90_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.608,
+    "takes": [
+      {
+        "take": "P19_s90_t1.wav",
+        "seed": 1190,
+        "speed": 0.9,
+        "transcript": "Not anymore.",
+        "exact": true,
+        "conf": 0.851,
+        "min_conf": 0.754,
+        "raw_peak": 0.4396,
+        "raw_rms": 0.0919,
+        "dur_trimmed": 0.598,
+        "lufs_raw": -19.46,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P19_s90_t2.wav",
+        "seed": 1191,
+        "speed": 0.9,
+        "transcript": "Not anymore.",
+        "exact": true,
+        "conf": 0.874,
+        "min_conf": 0.784,
+        "raw_peak": 0.7226,
+        "raw_rms": 0.1052,
+        "dur_trimmed": 0.608,
+        "lufs_raw": -18.7,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  },
+  "P20": {
+    "text": "Gemini 4 Neon.",
+    "chosen": "P20_s90_t2.wav",
+    "chosen_pass": true,
+    "duration": 0.985,
+    "takes": [
+      {
+        "take": "P20_s90_t1.wav",
+        "seed": 1200,
+        "speed": 0.9,
+        "transcript": "Germany for neon",
+        "exact": false,
+        "conf": 0.557,
+        "min_conf": 0.413,
+        "raw_peak": 0.9578,
+        "raw_rms": 0.1633,
+        "dur_trimmed": 0.92,
+        "lufs_raw": -14.97,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Germany for neon'"
+        ]
+      },
+      {
+        "take": "P20_s90_t2.wav",
+        "seed": 1201,
+        "speed": 0.9,
+        "transcript": "Gemini 4 Neon.",
+        "exact": true,
+        "conf": 0.692,
+        "min_conf": 0.397,
+        "raw_peak": 1.0718,
+        "raw_rms": 0.1655,
+        "dur_trimmed": 0.985,
+        "lufs_raw": -15.74,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      },
+      {
+        "take": "P20_s90_t3.wav",
+        "seed": 1202,
+        "speed": 0.9,
+        "transcript": "Germany for neon.",
+        "exact": false,
+        "conf": 0.587,
+        "min_conf": 0.477,
+        "raw_peak": 1.0494,
+        "raw_rms": 0.1411,
+        "dur_trimmed": 0.95,
+        "lufs_raw": -16.85,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Germany for neon.'"
+        ]
+      },
+      {
+        "take": "P20_s90_t4.wav",
+        "seed": 1203,
+        "speed": 0.9,
+        "transcript": "Germany for neon",
+        "exact": false,
+        "conf": 0.706,
+        "min_conf": 0.57,
+        "raw_peak": 0.9709,
+        "raw_rms": 0.157,
+        "dur_trimmed": 1.005,
+        "lufs_raw": -15.79,
+        "pass": false,
+        "fits": true,
+        "reject": [
+          "transcript 'Germany for neon'"
+        ]
+      },
+      {
+        "take": "P20_s90_t5.wav",
+        "seed": 1204,
+        "speed": 0.9,
+        "transcript": "Gemini 4 Neon",
+        "exact": true,
+        "conf": 0.562,
+        "min_conf": 0.443,
+        "raw_peak": 1.0262,
+        "raw_rms": 0.1541,
+        "dur_trimmed": 0.98,
+        "lufs_raw": -15.96,
+        "pass": true,
+        "fits": true,
+        "reject": []
+      }
+    ]
+  }
+}

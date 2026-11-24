@@ -7,9 +7,15 @@
 | `out/gemini-neon-16x9.mp4` | 1920×1080 | `GeminiNeon16x9` |
 | `out/gemini-neon-9x16.mp4` | 1080×1920 | `GeminiNeon9x16` |
 
-H.264, yuv420p, CRF 16, **no audio track**. Add your music afterwards.
+H.264, yuv420p, CRF 16. Silent masters above; the finals with the mixed soundtrack (cloned VO + licensed track, AAC 320 kbps, −14 LUFS) are:
 
-*Concept film, not affiliated with or endorsed by Google.*
+| file | size |
+|---|---|
+| `out/gemini-neon-16x9-final.mp4` | 1920×1080 |
+| `out/gemini-neon-9x16-final.mp4` | 1080×1920 |
+
+The audio pipeline (local voice clone with F5-TTS, music edit, mix, checks) is documented in
+[`AUDIO.md`](AUDIO.md) (copy of `public/gemini-neon-pack/audio/README.md`); logs are in `audio-log/`.
 
 ## Setup (once)
 
@@ -49,7 +55,8 @@ Preview live while you tweak: `npm run studio`.
 ```bash
 npm run stills    # check stills of both formats → out/stills/ (0.5, 5.8, 9.9, 15, 22.3, 24.5, 26.5 s)
 npm run render    # both MP4s (or render:16x9 / render:9x16)
-npm run verify    # ffprobe: size, 30 fps, 858 frames, 28.6 s, no audio
+npm run verify    # ffprobe the silent masters: size, 30 fps, 858 frames, 28.6 s, no audio
+npm run mux       # add audio/final-mix.wav → out/*-final.mp4 (see AUDIO.md for the audio steps)
 ```
 
 The grain, weave and flicker are seeded, so every render is identical frame for frame.
