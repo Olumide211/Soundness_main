@@ -187,11 +187,11 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0, fit
             if only and pid not in only:
                 continue
             gen, target_dur = VARIANTS[pid][variant - 1]
+            tag = f"_v{variant}_s{int(round(speed * 100))}_"
         elif fit:
             target_dur = fit_target(pid, gen)
             if target_dur:
                 tag = f"_fit_s{int(round(speed * 100))}_"
-            tag = f"_v{variant}_s{int(round(speed * 100))}_"
         if only and pid not in only:
             continue
         rows = []
