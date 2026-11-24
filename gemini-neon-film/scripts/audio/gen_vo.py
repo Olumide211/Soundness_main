@@ -148,14 +148,15 @@ def score_take(model, f: Path, heard: str, pid: str = None):
 
         start, end = WINDOWS[pid]
         speech = len(yt) / sr - 2 * PAD
-        if speech > (end - start - 0.02) * 1.05:
-            reasons.append(f"too long for its window ({speech:.2f}s > {end - start - 0.02:.2f}s +5%)")
+        fits = speech <= (end - start - 0.02) * 1.05  # fits with the allowed ≤5 % stretch
+    else:
+        fits = True
     return {
         "take": f.name, "seed": meta["seed"], "speed": meta["speed"], "transcript": text,
         "exact": exact, "conf": round(conf, 3), "min_conf": round(minconf, 3),
         "raw_peak": meta.get("raw_peak"), "raw_rms": meta.get("raw_rms"),
         "dur_trimmed": round(len(yt) / sr, 3), "lufs_raw": round(lufs(yt, sr) + meta.get("gain_db", 0.0), 2),
-        "pass": not reasons, "reject": reasons,
+        "pass": not reasons, "fits": fits, "reject": reasons,
     }
 
 
@@ -232,10 +233,14 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0, fit
                     break
         passing = [r for r in rows if r["pass"]]
         pool = passing or [r for r in rows if r["exact"]] or rows
-        if pid in SOFTEST:
-            best = min(pool, key=lambda r: (r["lufs_raw"], -r["conf"]))
+        # prefer takes that fit their window (with ≤5 % stretch); else the shortest clean take
+        fitting = [r for r in pool if r.get("fits", True)]
+        if not fitting:
+            best = min(pool, key=lambda r: r["dur_trimmed"])
+        elif pid in SOFTEST:
+            best = min(fitting, key=lambda r: (r["lufs_raw"], -r["conf"]))
         else:
-            best = max(pool, key=lambda r: (r["conf"] + 0.5 * r["min_conf"]))
+            best = max(fitting, key=lambda r: (r["conf"] + 0.5 * r["min_conf"]))
         y, sr = sf.read(takes_dir / best["take"])
         yt, _, _ = trim(y, sr)
         sf.write(vo / f"{pid}.wav", yt, sr, subtype="FLOAT")

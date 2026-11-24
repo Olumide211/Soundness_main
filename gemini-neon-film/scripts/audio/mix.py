@@ -3,7 +3,7 @@ Final mix → audio/final-mix.wav (48 kHz stereo, −14 LUFS, ≤ −1 dBTP).
 
   tools/tts/bin/python scripts/audio/mix.py public/gemini-neon-pack/audio
 
-1. VO bus: each phrase (audio/vo/Pxx.wav, optional ≤5 % atempo from timeline.json)
+1. VO bus: each phrase (audio/vo/Pxx.wav, tempo from timeline.json (rubberband))
    is placed so its first word lands on its start time (audio/vo/timeline.json), then
    ffmpeg: highpass 80 Hz → de-esser → 3:1 compressor → +3 dB presence @ 4 kHz.
    Dry: no reverb.
@@ -38,10 +38,10 @@ def ff(*args):
 
 
 def read48(path: Path, tempo: float = 1.0) -> np.ndarray:
-    """Mono 48 kHz float, optional atempo (pitch-preserving)."""
+    """Mono 48 kHz float, optional tempo change (rubberband, pitch + formants preserved)."""
     with tempfile.TemporaryDirectory() as d:
         out = Path(d) / "x.wav"
-        af = f"atempo={tempo}" if abs(tempo - 1) > 1e-6 else "anull"
+        af = f"rubberband=tempo={tempo}:formant=preserved" if abs(tempo - 1) > 1e-6 else "anull"
         ff("-i", str(path), "-af", af, "-ac", "1", "-ar", str(SR), "-c:a", "pcm_f32le", str(out))
         y, _ = sf.read(out)
     return y

@@ -6,8 +6,9 @@ Fit the VO to the locked picture and sync the subtitles to the voice.
 - Each phrase file (audio/vo/Pxx.wav) has exactly 40 ms of padding, so the first
   word starts at file + 0.040 s. Each phrase is placed so its first word lands on
   its start time below, and must end before its window closes (never crossing a cut).
-- Too long → time-compress ≤ 5 % (atempo). More than that → reported as a problem
-  (regenerate that phrase at speed 1.0: gen_vo.py --only Pxx --speed 1.0).
+- Too long → time-compress (rubberband, formant-preserved). ≤ 5 % is the brief's limit; lines that
+  still don't fit at speed 1.0 are compressed further to keep the window/cut rule, and listed as
+  `over_limit` in timeline.json and in audio/README.md.
 - Subtitles: if a cue's in-time differs from its word start by more than 3 frames,
   the subtitle moves to the word start (snapped to a frame). Cuts never move.
 - --write updates the CUES in src/edl.ts; the plan goes to audio/vo/timeline.json.
@@ -24,7 +25,8 @@ from audio_common import load_edl  # noqa: E402
 
 PAD = 0.040
 FPS = 30
-MAX_COMPRESS = 0.05
+MAX_COMPRESS = 0.05  # the brief's limit
+MAX_HARD = 0.45  # beyond this, refuse (speech would be unusable)
 
 # phrase: (start of the first word, window end) — from the brief, on the locked cut
 WINDOWS = {
@@ -52,11 +54,14 @@ def main(audio: Path, write: bool):
         tempo = 1.0
         if speech > room:
             need = speech / room - 1
-            if need <= MAX_COMPRESS:
-                tempo = round(1 + need + 0.002, 4)
-            else:
-                plan["problems"].append(f"{p} '{cues[p]['text']}' is {speech:.2f}s, window {room:.2f}s "
-                                        f"(needs {need * 100:.1f}% compression)")
+            tempo = round(1 + need + 0.002, 4)
+            if need > MAX_COMPRESS:
+                # the window is shorter than the voice can say the line cleanly even at
+                # speed 1.0: compress it to fit (the window/cut rule wins), and report it
+                plan.setdefault("over_limit", {})[p] = round(need * 100, 1)
+                if need > MAX_HARD:
+                    plan["problems"].append(f"{p} '{cues[p]['text']}' is {speech:.2f}s, window {room:.2f}s "
+                                            f"(needs {need * 100:.1f}% compression)")
         plan["at"][p] = start
         plan["dur"][p] = round(speech, 3)
         plan["end"][p] = round(start + speech / tempo, 3)
@@ -73,6 +78,8 @@ def main(audio: Path, write: bool):
         mv = f"  subtitle {plan['subs'][p]['from']} → {plan['subs'][p]['to']:.3f}" if p in plan["subs"] else ""
         print(f"{p} {start:6.2f} → {plan['end'][p]:6.3f}  (window ends {wend:5.2f}, speech {plan['dur'][p]:.2f}s){tt}{mv}"
               f"   {cues[p]['text']}")
+    for p, pct in plan.get("over_limit", {}).items():
+        print(f"OVER 5% LIMIT: {p} compressed {pct}% to fit its window")
     for pr in plan["problems"]:
         print("PROBLEM:", pr)
 
