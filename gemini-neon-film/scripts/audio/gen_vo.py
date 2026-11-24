@@ -104,11 +104,17 @@ def lufs(y, sr):
 
 
 def load_models():
+    import os
+
     import torch
     from f5_tts.api import F5TTS
     from faster_whisper import WhisperModel
 
-    return F5TTS(model="F5TTS_v1_Base"), WhisperModel("medium.en", device="cpu", compute_type="int8")
+    # VO_THREADS: CPU threads per process (set 2 when running two jobs on 4 cores,
+    # otherwise the thread pools oversubscribe the CPU and everything crawls)
+    n = int(os.environ.get("VO_THREADS", "0")) or os.cpu_count()
+    torch.set_num_threads(n)
+    return F5TTS(model="F5TTS_v1_Base"), WhisperModel("medium.en", device="cpu", compute_type="int8", cpu_threads=n)
 
 
 def score_take(model, f: Path, heard: str, pid: str = None):
