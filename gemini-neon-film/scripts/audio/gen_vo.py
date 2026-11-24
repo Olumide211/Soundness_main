@@ -46,7 +46,12 @@ PHRASES = [
 # Alternative model inputs (same spoken words) for phrases whose takes all fail;
 # use with --variant N (takes are then saved as Pxx_vN_sYY_tK.wav)
 VARIANTS = {
-    "P02": ["Haz a nature.", "Has, a nature.", "Hhas a nature."],  # same sound /hæz/, stronger h
+    # (model text, target speech length in s → F5 fix_duration; None = model's own estimate)
+    # F5 under-estimates very short lines with this reference and crushes the words,
+    # so short lines get an explicit, natural length that still fits their window.
+    "P02": [("Has a nature.", 0.85), ("Haz a nature.", 0.85), ("Has, a nature.", 0.9)],
+    "P05": [("And neon?", 0.95), ("And nee-on?", 0.95)],
+    "P06": [("Neon waits.", 0.66), ("Nee-on waits.", 0.66), ("Neon waits.", 0.62)],
 }
 SOFTEST = {"P06"}  # "Neon waits." → softest/quietest passing take
 TAKES = 5  # max takes per phrase
@@ -150,12 +155,14 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
     takes_dir.mkdir(parents=True, exist_ok=True)
     log_path = vo / "takes.json"
     log = json.loads(log_path.read_text()) if log_path.exists() else {}
+    ref_len = sf.info(ref).duration
     for pid, heard, gen in PHRASES:
+        target_dur = None
         tag = f"_s{int(round(speed * 100))}_"
         if variant:
             if only and pid not in only:
                 continue
-            gen = VARIANTS[pid][variant - 1]
+            gen, target_dur = VARIANTS[pid][variant - 1]
             tag = f"_v{variant}_s{int(round(speed * 100))}_"
         if only and pid not in only:
             continue
@@ -179,13 +186,14 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
                     if k + 1 >= MIN_TAKES and len(fresh) >= MIN_TAKES:
                         break
                     continue
+                fix = (ref_len + target_dur + 0.12) if target_dur else None
                 wav, sr, _ = tts.infer(ref, ref_text, gen, speed=speed, nfe_step=32, seed=seed,
-                                       show_info=lambda *a: None, progress=None)
+                                       fix_duration=fix, show_info=lambda *a: None, progress=None)
                 wav = np.asarray(wav, dtype=np.float64)
                 raw_peak = float(np.max(np.abs(wav)))
                 gain = min(1.0, 0.891 / max(raw_peak, 1e-9))  # → -1 dBFS peak, never boost
                 sf.write(out, wav * gain, sr, subtype="FLOAT")
-                meta = {"seed": seed, "speed": speed, "gen_text": gen, "raw_peak": round(raw_peak, 4),
+                meta = {"seed": seed, "speed": speed, "gen_text": gen, "fix_duration": fix, "raw_peak": round(raw_peak, 4),
                         "raw_rms": round(float(np.sqrt(np.mean(wav**2))), 4), "gain_db": round(-20 * np.log10(gain), 2)}
                 out.with_suffix(".json").write_text(json.dumps(meta))
                 r = score_take(model, out, heard)
@@ -217,8 +225,10 @@ if __name__ == "__main__":
     ap.add_argument("--only", default="")
     ap.add_argument("--speed", type=float, default=0.9)
     ap.add_argument("--score-only", action="store_true")
+    ap.add_argument("--max-takes", type=int, default=TAKES)
     ap.add_argument("--variant", type=int, default=0, help="use VARIANTS[pid][N-1] as the model text")
     a = ap.parse_args()
+    TAKES = a.max_takes
     only = set(filter(None, a.only.split(",")))
     run(a.audio, only, a.speed, a.score_only, a.variant)
     sys.exit(0)
