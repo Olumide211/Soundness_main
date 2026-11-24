@@ -59,12 +59,15 @@ MIN_TAKES = 2  # stop early once this many takes pass
 PAD = 0.040
 
 NUM = {"4": "four", "1": "one"}
+# exact homophones: identical pronunciation, so whisper's spelling choice carries no
+# information about the audio ("neon waits" / "neon weights" are the same sounds)
+HOMOPHONES = {"weights": "waits"}
 
 
 def norm(t: str) -> str:
     t = t.lower().replace("-", " ")
     t = re.sub(r"[^a-z0-9' ]", " ", t)
-    words = [NUM.get(w, w) for w in t.split()]
+    words = [HOMOPHONES.get(NUM.get(w, w), NUM.get(w, w)) for w in t.split()]
     return " ".join(words)
 
 
