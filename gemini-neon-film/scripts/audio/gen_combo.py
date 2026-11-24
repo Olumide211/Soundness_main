@@ -27,6 +27,38 @@ COMBOS = {  # pid: (full sentence fed to the model, words that belong to the pre
 TAKES = 4
 
 
+def recut(audio: Path, pids):
+    """Re-cut saved full sentences (takes/raw) without regenerating."""
+    _, model = load_models()
+    takes_dir = audio / "vo" / "takes"
+    heard = {p: h for p, h, _ in PHRASES}
+    for pid in pids:
+        text, nprev = COMBOS[pid]
+        for raw in sorted((takes_dir / "raw").glob(f"{pid}_combo_*.wav")):
+            wav, sr = sf.read(raw)
+            segs, _ = model.transcribe(_to16(wav, sr), beam_size=5, language="en", word_timestamps=True,
+                                       condition_on_previous_text=False)
+            words = [w for s_ in segs for w in s_.words]
+            piece = best_cut(model, wav, sr, words, norm(text).split(), nprev, heard[pid])
+            if piece is None:
+                print(f"  {pid} {raw.name}: no clean cut", flush=True)
+                continue
+            write_take(takes_dir / raw.name, piece, sr, json.loads((takes_dir / raw.name).with_suffix(".json").read_text())
+                       if (takes_dir / raw.name).with_suffix(".json").exists() else {"seed": None}, text)
+            r = score_take(model, takes_dir / raw.name, heard[pid], pid)
+            print(f"  {pid} take {raw.name} (recut): {r['transcript']!r} conf={r['conf']} "
+                  f"{'PASS' if r['pass'] else r['reject']}", flush=True)
+
+
+def write_take(out, piece, sr, meta, text):
+    pk = float(np.max(np.abs(piece)))
+    gain = min(1.0, 0.891 / max(pk, 1e-9))
+    sf.write(out, piece * gain, sr, subtype="FLOAT")
+    meta.update({"speed": 0.9, "gen_text": f"{text} (cut)", "fix_duration": None, "raw_peak": round(pk, 4),
+                 "raw_rms": round(float(np.sqrt(np.mean(piece**2))), 4), "gain_db": round(-20 * np.log10(gain), 2)})
+    out.with_suffix(".json").write_text(json.dumps(meta))
+
+
 def main(audio: Path, pids):
     tts, model = load_models()
     ref = str(audio / "ref-clean.wav")
@@ -51,28 +83,9 @@ def main(audio: Path, pids):
             target = norm(text).split()
             got = [norm(w.word) for w in words]
             print(f"  {pid} combo take {k + 1}: {' '.join(got)!r}", flush=True)
-            line_n = len(target) - nprev if nprev else nprev_keep(target)
-            if len(words) < line_n:
+            piece = best_cut(model, wav, sr, words, target, nprev, heard[pid])
+            if piece is None:
                 continue
-            # cut in the pause before (or after) the line's own words, at its quietest 10 ms
-            if nprev:  # keep the LAST line_n words
-                first = words[-line_n]
-                prev_end = words[-line_n - 1].end if len(words) > line_n else 0.0
-                # tight around the first kept word's onset: lines run together with no pause
-                # (e.g. "element|has"), so a wide window would catch the previous word's tail
-                a = max(prev_end, first.start - 0.05)
-                b = first.start + 0.03
-            else:  # keep the FIRST 2 words ("and neon")
-                a, b = words[1].end, (words[2].start if len(words) > 2 else words[1].end + 0.25)
-            a, b = int(a * sr), int(max(b, a + 0.02) * sr)
-            win = int(0.01 * sr)
-            env = np.convolve(wav**2, np.ones(win) / win, mode="same")
-            lo, hi = max(0, a - win), min(len(wav), b + win)
-            cut = lo + int(np.argmin(env[lo:hi]))
-            piece = wav[cut:] if nprev else wav[:cut]
-            f = int(0.005 * sr)
-            piece[:f] *= np.linspace(0, 1, f)
-            piece[-f:] *= np.linspace(1, 0, f)
             pk = float(np.max(np.abs(piece)))
             gain = min(1.0, 0.891 / max(pk, 1e-9))
             sf.write(out, piece * gain, sr, subtype="FLOAT")
@@ -85,8 +98,43 @@ def main(audio: Path, pids):
                   flush=True)
 
 
-def nprev_keep(target):
-    return 2
+def best_cut(model, wav, sr, words, target, nprev, expected):
+    """Lines often run together with no pause, and whisper's word timestamps are only
+    ~±50 ms, so try cut points every 10 ms around the boundary and let whisper judge:
+    keep the cut whose piece transcribes exactly as the line, with the best confidence."""
+    if nprev:
+        line_n = len(target) - nprev
+        if len(words) < line_n:
+            return None
+        t0 = words[-line_n].start
+        cands = np.arange(t0 - 0.06, t0 + 0.12, 0.01)
+    else:
+        if len(words) < 2:
+            return None
+        t0 = words[1].end
+        cands = np.arange(t0 - 0.06, t0 + 0.14, 0.01)
+    best, best_score = None, -1
+    win = int(0.004 * sr)
+    env = np.convolve(wav**2, np.ones(win) / win, mode="same")
+    for c in cands:
+        i = int(c * sr)
+        lo, hi = max(0, i - int(0.008 * sr)), min(len(wav), i + int(0.008 * sr))
+        i = lo + int(np.argmin(env[lo:hi]))  # nearest quiet sample
+        piece = (wav[i:] if nprev else wav[:i]).copy()
+        if len(piece) < int(0.15 * sr):
+            continue
+        f = int(0.005 * sr)
+        piece[:f] *= np.linspace(0, 1, f)
+        piece[-f:] *= np.linspace(1, 0, f)
+        segs, _ = model.transcribe(_to16(piece, sr), beam_size=5, language="en", word_timestamps=True,
+                                   condition_on_previous_text=False)
+        ws = [w for s_ in segs for w in s_.words]
+        if not ws or norm(" ".join(w.word for w in ws)) != norm(expected):
+            continue
+        score = min(w.probability for w in ws) + np.mean([w.probability for w in ws])
+        if score > best_score:
+            best, best_score = piece, score
+    return best
 
 
 def _to16(wav, sr):
@@ -96,4 +144,8 @@ def _to16(wav, sr):
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]).resolve(), sys.argv[2:])
+    args = sys.argv[2:]
+    if args and args[0] == "--recut":
+        recut(Path(sys.argv[1]).resolve(), args[1:])
+    else:
+        main(Path(sys.argv[1]).resolve(), args)
