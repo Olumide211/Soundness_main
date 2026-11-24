@@ -43,6 +43,8 @@ def main(audio: Path, pids):
             wav, sr, _ = tts.infer(ref, ref_text, text, speed=0.9, nfe_step=32, seed=seed,
                                    show_info=lambda *a: None, progress=None)
             wav = np.asarray(wav, dtype=np.float64)
+            (takes_dir / "raw").mkdir(exist_ok=True)
+            sf.write(takes_dir / "raw" / out.name, wav, sr, subtype="FLOAT")  # full sentence, for re-cutting
             segs, _ = model.transcribe(wav.astype(np.float32) if sr == 16000 else _to16(wav, sr), beam_size=5,
                                        language="en", word_timestamps=True, condition_on_previous_text=False)
             words = [w for s in segs for w in s.words]
@@ -55,8 +57,11 @@ def main(audio: Path, pids):
             # cut in the pause before (or after) the line's own words, at its quietest 10 ms
             if nprev:  # keep the LAST line_n words
                 first = words[-line_n]
-                a = words[-line_n - 1].end if len(words) > line_n else max(0.0, first.start - 0.25)
-                b = first.start
+                prev_end = words[-line_n - 1].end if len(words) > line_n else 0.0
+                # tight around the first kept word's onset: lines run together with no pause
+                # (e.g. "element|has"), so a wide window would catch the previous word's tail
+                a = max(prev_end, first.start - 0.05)
+                b = first.start + 0.03
             else:  # keep the FIRST 2 words ("and neon")
                 a, b = words[1].end, (words[2].start if len(words) > 2 else words[1].end + 0.25)
             a, b = int(a * sr), int(max(b, a + 0.02) * sr)
