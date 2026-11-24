@@ -53,7 +53,14 @@ VARIANTS = {
     "P05": [("And neon?", 0.95), ("And nee-on?", 0.95)],
     "P06": [("Neon waits.", 0.66), ("Nee-on waits.", 0.66), ("Neon waits.", 0.62)],
 }
-SOFTEST = {"P06"}  # "Neon waits." → softest/quietest passing take
+SOFTEST = {"P06"}
+# Manual picks, with the reason (logged in takes.json / README):
+OVERRIDES = {
+    "P02": ("P02_cut1105_s90_t1.wav",
+            "cut from 'Every element has a nature.' right after the 't' of 'element'; the 'h' of 'has' is "
+            "soft, so whisper on the isolated clip hears 'as a nature' but hears 'has a nature' in context "
+            "(after 'every element', as in the film). Verified on the final mix."),
+}  # "Neon waits." → softest/quietest passing take
 TAKES = 5  # max takes per phrase
 MIN_TAKES = 2  # stop early once this many takes pass
 PAD = 0.040
@@ -234,6 +241,13 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0, fit
                 fresh = [x for x in rows if x["pass"] and tag in x["take"]]
                 if k + 1 >= MIN_TAKES and len(fresh) >= MIN_TAKES:
                     break
+        if pid in OVERRIDES and (takes_dir / OVERRIDES[pid][0]).exists():
+            chosen = OVERRIDES[pid][0]
+            if not any(r["take"] == chosen for r in rows):
+                rows.append(score_take(model, takes_dir / chosen, heard, pid))
+            for r in rows:
+                if r["take"] == chosen:
+                    r["override"] = OVERRIDES[pid][1]
         passing = [r for r in rows if r["pass"]]
         pool = passing or [r for r in rows if r["exact"]] or rows
         # prefer takes that fit their window (with ≤5 % stretch); else the shortest clean take
@@ -244,6 +258,8 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0, fit
             best = min(fitting, key=lambda r: (r["lufs_raw"], -r["conf"]))
         else:
             best = max(fitting, key=lambda r: (r["conf"] + 0.5 * r["min_conf"]))
+        if pid in OVERRIDES and any(r.get("override") for r in rows):
+            best = next(r for r in rows if r.get("override"))
         y, sr = sf.read(takes_dir / best["take"])
         yt, _, _ = trim(y, sr)
         sf.write(vo / f"{pid}.wav", yt, sr, subtype="FLOAT")
