@@ -27,9 +27,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 from audio_common import SR, db, load_edl  # noqa: E402
 
 PAD = 0.040
-DUCK_DB = -10.0
+DUCK_DB = -12.0  # top of the brief's 8–12 dB range: clearest voice
 # per-line VO level (RMS dBFS before the bus): "And neon?" softer, "Neon waits." almost a whisper
-LEVELS = {"P05": -23.0, "P06": -27.0}
+LEVELS = {"P05": -21.0, "P06": -25.0}
 ATTACK, RELEASE = 0.010, 0.250
 
 
@@ -90,7 +90,7 @@ def main(audio: Path):
     for p, (s, e) in placed.items():
         a, b = int(s * SR), int(e * SR)
         r = np.sqrt(np.mean(vo[a:b] ** 2)) + 1e-12
-        target = db(LEVELS.get(p, -20.0))
+        target = db(LEVELS.get(p, -18.0))
         vo[a:b] *= target / r
 
     with tempfile.TemporaryDirectory() as d:

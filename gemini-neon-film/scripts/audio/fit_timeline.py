@@ -49,8 +49,10 @@ def main(audio: Path, write: bool):
     plan = {"at": {}, "end": {}, "dur": {}, "tempo": {}, "window": WINDOWS, "subs": {}, "problems": []}
     for p, (start, wend) in WINDOWS.items():
         y, sr = sf.read(audio / "vo" / f"{p}.wav")
-        speech = len(y) / sr - 2 * PAD
-        room = wend - start - 0.02  # keep ≥ 20 ms before the window closes
+        # the trailing 40 ms pad still carries the audible tail of the last consonant,
+        # so budget for it: everything after the first word's start must fit the window
+        speech = len(y) / sr - PAD
+        room = wend - start - 0.015  # keep ≥ 15 ms before the window closes
         tempo = 1.0
         if speech > room:
             need = speech / room - 1

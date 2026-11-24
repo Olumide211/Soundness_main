@@ -54,6 +54,9 @@ VARIANTS = {
     "P06": [("Neon waits.", 0.66), ("Nee-on waits.", 0.66), ("Neon waits.", 0.62)],
     "P10": [("Research.", 0.47)],  # one word: a natural 0.47 s instead of a 75 % squeeze
     "P11": [("Science.", 0.47)],
+    "P09": [("Code.", 0.42)],
+    # split the squeeze: the model paces the line to ~0.95 s, rubberband does the last ~20 %
+    "P14": [("Change course mid-task.", 0.95), ("Change course, mid-task.", 0.95)],
 }
 SOFTEST = {"P06"}
 # Manual picks, with the reason (logged in takes.json / README):
