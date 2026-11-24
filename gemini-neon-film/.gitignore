@@ -3,3 +3,4 @@ public/gemini-neon-pack/
 out/
 .DS_Store
 tools/
+__pycache__/
