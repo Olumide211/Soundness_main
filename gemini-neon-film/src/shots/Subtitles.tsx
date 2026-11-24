@@ -29,7 +29,7 @@ export const Subtitles: React.FC<{chunks: SubChunk[]}> = ({chunks}) => {
                 lineHeight: 1,
                 letterSpacing: '0.02em',
                 color: 'rgba(255,255,255,0.9)',
-                textShadow: '0 1px 1px rgba(0,0,0,0.75), 0 0 4px rgba(0,0,0,0.55), 0 0 14px rgba(0,0,0,0.5), 0 0 28px rgba(0,0,0,0.45)',
+                textShadow: '0 1px 1px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.5), 0 0 14px rgba(0,0,0,0.4)',
                 textTransform: 'lowercase',
                 whiteSpace: 'nowrap',
               }}

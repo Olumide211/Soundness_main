@@ -4,10 +4,10 @@ Check step for the final films.
   tools/tts/bin/python scripts/audio/check.py public/gemini-neon-pack/audio [out/a.mp4 out/b.mp4 ...]
 
 1. loudness (ebur128): ≈ −14 LUFS integrated (±0.5), true peak ≤ −1.0 dBTP
-2. true silence (< −60 dBFS) at 8.75–9.05, 20.35–20.85 and 25.05–end
+2. true silence (< −60 dBFS) at 4.94–4.99 and 24.95–end; near-silence (< −40) at 9.25–9.75
 3. faster-whisper on the mix: every line present, words correct, each starts
-   within 3 frames of its subtitle in-time
-4. bass hits on 9.1 s and 20.9 s within 1 frame
+   within 3 frames of its start time, and no line crosses a cut
+4. bass hits on 9.800 s (filament) and 21.567 s (hero tube) within 1 frame
 5. ffprobe each MP4: size, 30 fps, 858 frames, 28.6 s, exactly one AAC stream
    (and its decoded audio passes 1, 2 and 4 too)
 """
@@ -43,6 +43,24 @@ def ebur(path: Path):
     return I, tp
 
 
+def cut_checks(audio: Path, edl):
+    """No VO line crosses a cut or its window: measured on the processed VO bus."""
+    print("\n[vo] lines vs windows and cuts")
+    plan = json.loads((audio / "vo" / "timeline.json").read_text())
+    vo, sr = sf.read(audio / "vo-bus.wav")
+    win = int(0.01 * sr)
+    env = 20 * np.log10(np.sqrt(np.convolve(vo**2, np.ones(win) / win, mode="same")) + 1e-12)
+    cuts = sorted({round(sh["start"] - (sh.get("blackBefore", 0) / 30), 3) for sh in edl["SHOTS"]} |
+                  {round(sh["end"], 3) for sh in edl["SHOTS"]})
+    for p, (start, wend) in plan["window"].items():
+        a, b = int((start - 0.15) * sr), int((wend + 0.15) * sr)
+        act = np.where(env[a:b] > -50)[0]
+        s0, s1 = (a + act[0]) / sr, (a + act[-1]) / sr
+        crossed = [c for c in cuts if s0 + 0.02 < c < s1 - 0.02]
+        ok(f"{p} {s0:.3f}–{s1:.3f}s inside its window (ends {wend})", s1 <= wend + 0.01 and not crossed,
+           f"{'crosses cut ' + str(crossed) if crossed else ''}")
+
+
 def audio_checks(label, wav: Path, edl, words=True):
     print(f"\n[{label}] {wav.name}")
     A = edl["ANCHORS"]
@@ -54,10 +72,11 @@ def audio_checks(label, wav: Path, edl, words=True):
         y = y.T
     else:
         y = y[None]
-    for a, b in ((8.75, 9.05), (20.35, 20.85), (25.05, edl["DURATION"] - 0.005)):
+    for a, b, lim, kind in ((4.94, 4.99, -60, "true silence"), (24.95, edl["DURATION"] - 0.005, -60, "true silence"),
+                            (9.25, 9.75, -40, "near-silence")):
         seg = y[:, int(a * sr): int(b * sr)]
         pk = 20 * np.log10(np.abs(seg).max() + 1e-12)
-        ok(f"silence {a:.2f}–{b:.2f}s < −60 dBFS", pk < -60, f"(peak {pk:.1f} dBFS)")
+        ok(f"{kind} {a:.2f}–{b:.2f}s < {lim} dBFS", pk < lim, f"(peak {pk:.1f} dBFS)")
     for anchor in (A["hit1"], A["hit2"]):
         on, _ = hit_onset(y, anchor, sr)
         err = (on - anchor) / FRAME
@@ -72,8 +91,10 @@ def audio_checks(label, wav: Path, edl, words=True):
     stream = [(norm(w.word), w.start) for s in segs for w in s.words if norm(w.word)]
     flat = [(t, st) for wd, st in stream for t in wd.split()]
     print("  whisper:", " ".join(t for t, _ in flat))
+    plan = json.loads((wav_plan_dir / "timeline.json").read_text())
     i = 0
     for c in edl["CUES"]:
+        c = dict(c, at=plan["at"][c["vo"]])  # the brief's start time for this line
         target = norm(c["text"]).split()
         found = None
         for j in range(i, len(flat) - len(target) + 1):
@@ -110,6 +131,9 @@ def main():
     audio = Path(sys.argv[1]).resolve()
     root = audio.parents[2]
     edl = load_edl(root)
+    global wav_plan_dir
+    wav_plan_dir = audio / "vo"
+    cut_checks(audio, edl)
     audio_checks("mix", audio / "final-mix.wav", edl, words=True)
     for mp4 in map(Path, sys.argv[2:]):
         w, h = (1920, 1080) if "16x9" in mp4.name else (1080, 1920)

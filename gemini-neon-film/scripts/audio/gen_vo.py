@@ -46,7 +46,7 @@ PHRASES = [
 # Alternative model inputs (same spoken words) for phrases whose takes all fail;
 # use with --variant N (takes are then saved as Pxx_vN_sYY_tK.wav)
 VARIANTS = {
-    "P02": ["Has a nature.", "Has... a nature.", "It has a nature."],
+    "P02": ["Haz a nature.", "Has, a nature.", "Hhas a nature."],  # same sound /hæz/, stronger h
 }
 SOFTEST = {"P06"}  # "Neon waits." → softest/quietest passing take
 TAKES = 5  # max takes per phrase
@@ -141,7 +141,7 @@ def score_take(model, f: Path, heard: str):
     }
 
 
-def run(audio: Path, only, speed: float, score_only: bool):
+def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
     tts, model = load_models()
     ref = str(audio / "ref-clean.wav")
     ref_text = (audio / "ref-text.txt").read_text(encoding="utf-8").strip()
@@ -151,25 +151,31 @@ def run(audio: Path, only, speed: float, score_only: bool):
     log_path = vo / "takes.json"
     log = json.loads(log_path.read_text()) if log_path.exists() else {}
     for pid, heard, gen in PHRASES:
+        tag = f"_s{int(round(speed * 100))}_"
+        if variant:
+            if only and pid not in only:
+                continue
+            gen = VARIANTS[pid][variant - 1]
+            tag = f"_v{variant}_s{int(round(speed * 100))}_"
         if only and pid not in only:
             continue
         rows = []
         if score_only:
-            for f in sorted(takes_dir.glob(f"{pid}_s*_t*.wav")):
+            for f in sorted(takes_dir.glob(f"{pid}_*t*.wav")):
                 rows.append(score_take(model, f, heard))
         else:
             # earlier takes at other speeds stay in the pool
-            for f in sorted(takes_dir.glob(f"{pid}_s*_t*.wav")):
-                if f"_s{int(round(speed*100))}_" not in f.name:
+            for f in sorted(takes_dir.glob(f"{pid}_*t*.wav")):
+                if tag not in f.name:
                     rows.append(score_take(model, f, heard))
             for k in range(TAKES):
-                seed = 1000 + int(pid[1:]) * 10 + k + (0 if abs(speed - 0.9) < 1e-6 else int(speed * 1000))
-                out = takes_dir / f"{pid}_s{int(round(speed*100))}_t{k+1}.wav"
+                seed = 1000 + int(pid[1:]) * 10 + k + (0 if abs(speed - 0.9) < 1e-6 else int(speed * 1000)) + variant * 100
+                out = takes_dir / f"{pid}{tag}t{k+1}.wav"
                 if out.exists() and out.with_suffix(".json").exists():  # resume: reuse finished takes
                     r = score_take(model, out, heard)
                     rows.append(r)
                     print(f"  {pid} take {k+1} (cached): {r['transcript']!r} {'PASS' if r['pass'] else r['reject']}", flush=True)
-                    fresh = [x for x in rows if x["pass"] and f"_s{int(round(speed*100))}_" in x["take"]]
+                    fresh = [x for x in rows if x["pass"] and tag in x["take"]]
                     if k + 1 >= MIN_TAKES and len(fresh) >= MIN_TAKES:
                         break
                     continue
@@ -185,7 +191,7 @@ def run(audio: Path, only, speed: float, score_only: bool):
                 r = score_take(model, out, heard)
                 rows.append(r)
                 print(f"  {pid} take {k+1}: {r['transcript']!r} conf={r['conf']} {'PASS' if r['pass'] else r['reject']}", flush=True)
-                fresh = [x for x in rows if x["pass"] and f"_s{int(round(speed*100))}_" in x["take"]]
+                fresh = [x for x in rows if x["pass"] and tag in x["take"]]
                 if k + 1 >= MIN_TAKES and len(fresh) >= MIN_TAKES:
                     break
         passing = [r for r in rows if r["pass"]]
@@ -211,7 +217,8 @@ if __name__ == "__main__":
     ap.add_argument("--only", default="")
     ap.add_argument("--speed", type=float, default=0.9)
     ap.add_argument("--score-only", action="store_true")
+    ap.add_argument("--variant", type=int, default=0, help="use VARIANTS[pid][N-1] as the model text")
     a = ap.parse_args()
     only = set(filter(None, a.only.split(",")))
-    run(a.audio, only, a.speed, a.score_only)
+    run(a.audio, only, a.speed, a.score_only, a.variant)
     sys.exit(0)

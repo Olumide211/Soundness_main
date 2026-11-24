@@ -4,14 +4,14 @@ Final mix → audio/final-mix.wav (48 kHz stereo, −14 LUFS, ≤ −1 dBTP).
   tools/tts/bin/python scripts/audio/mix.py public/gemini-neon-pack/audio
 
 1. VO bus: each phrase (audio/vo/Pxx.wav, optional ≤5 % atempo from timeline.json)
-   is placed so its first word lands on its cue (src/edl.ts CUES.at), then
+   is placed so its first word lands on its start time (audio/vo/timeline.json), then
    ffmpeg: highpass 80 Hz → de-esser → 3:1 compressor → +3 dB presence @ 4 kHz.
    Dry: no reverb.
 2. Music (audio/music-edit.wav) is ducked 10 dB under the VO: gain curve keyed
    from the VO envelope, attack 10 ms / release 250 ms, back up in the gaps.
 3. Sum → gain to −14 LUFS → 4× oversampled limiter (−1.6 dBFS) → 2-pass loudnorm
    (I −14, TP −1, linear) → 48 kHz stereo.
-The silent windows (8.7–9.1, 20.3–20.9, 25.0–end) are forced to digital zero.
+The mute windows (4.933–5.0, 9.2–9.77, 21.4–21.537, 24.933–end) are forced to digital zero.
 """
 import json
 import subprocess
@@ -28,6 +28,8 @@ from audio_common import SR, db, load_edl  # noqa: E402
 
 PAD = 0.040
 DUCK_DB = -10.0
+# per-line VO level (RMS dBFS before the bus): "And neon?" softer, "Neon waits." almost a whisper
+LEVELS = {"P05": -23.0, "P06": -27.0}
 ATTACK, RELEASE = 0.010, 0.250
 
 
@@ -72,6 +74,7 @@ def main(audio: Path):
     placed = {}
     for c in edl["CUES"]:
         p = c["vo"]
+        c = dict(c, at=plan["at"][p])  # first word lands on the brief's start time
         y = read48(audio / "vo" / f"{p}.wav", tempo.get(p, 1.0))
         start = c["at"] - PAD / tempo.get(p, 1.0)
         if start < 0:  # P01 at 0.0: drop the leading pad
@@ -87,9 +90,7 @@ def main(audio: Path):
     for p, (s, e) in placed.items():
         a, b = int(s * SR), int(e * SR)
         r = np.sqrt(np.mean(vo[a:b] ** 2)) + 1e-12
-        target = db(-20)
-        if p == "P06":  # "Neon waits." stays the softest line
-            target = db(-23)
+        target = db(LEVELS.get(p, -20.0))
         vo[a:b] *= target / r
 
     with tempfile.TemporaryDirectory() as d:
@@ -126,12 +127,10 @@ def main(audio: Path):
 
         # ── 3. Sum, pre-limit, loudnorm ──
         mix = mus_d + np.stack([vo_bus, vo_bus], 1)
-        for a, b in (A["muteA"], A["blackB"], (A["blackC"][0], edl["DURATION"])):
-            mix[int(round((a + 0.0) * SR)): int(round(b * SR)) if b < edl["DURATION"] else n] *= 0
-        # restore the 30 ms pre-hit fade-ins that sit just before 9.1 / 20.9
-        for hit in (A["hit1"], A["hit2"]):
-            a, b = int(round((hit - 0.03) * SR)), int(round(hit * SR))
-            mix[a:b] = (mus_d + np.stack([vo_bus, vo_bus], 1))[a:b]
+        mutes = [tuple(A["muteA"]), (A["dropOut"][0], A["hit1"] - 0.03),
+                 (A["dropOut2"][0], A["hit2"] - 0.03), (A["mute"], edl["DURATION"])]
+        for a, b in mutes:
+            mix[int(round(a * SR)): int(round(b * SR))] = 0.0
         # gain to ≈ −14 LUFS, then a 4× oversampled limiter (true-peak control) so the
         # final 2-pass loudnorm only needs a tiny linear trim
         import pyloudnorm as pyln
@@ -151,7 +150,7 @@ def main(audio: Path):
         out, _ = sf.read(d / "ln.wav")
         out = out[:n] if len(out) >= n else np.pad(out, ((0, n - len(out)), (0, 0)))
         # loudnorm is a pure gain in linear mode; re-zero the silent windows exactly
-        for a, b in ((8.7, 9.07), (20.3, 20.87), (25.0, edl["DURATION"])):
+        for a, b in mutes:
             out[int(round(a * SR)): int(round(b * SR))] = 0.0
         sf.write(audio / "final-mix.wav", out, SR, subtype="PCM_24")
 
