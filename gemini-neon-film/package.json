@@ -11,7 +11,8 @@
     "render:9x16": "remotion render src/index.ts GeminiNeon9x16 out/gemini-neon-9x16.mp4 --codec=h264 --crf=16 --pixel-format=yuv420p --muted --concurrency=50%",
     "render": "npm run render:16x9 && npm run render:9x16",
     "verify": "node scripts/verify.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "mux": "node scripts/mux.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.546",
