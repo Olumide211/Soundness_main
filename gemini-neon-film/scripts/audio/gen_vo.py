@@ -111,7 +111,7 @@ def load_models():
     return F5TTS(model="F5TTS_v1_Base"), WhisperModel("medium.en", device="cpu", compute_type="int8")
 
 
-def score_take(model, f: Path, heard: str):
+def score_take(model, f: Path, heard: str, pid: str = None):
     y, sr = sf.read(f)
     meta = json.loads(f.with_suffix(".json").read_text())
     peak = float(np.max(np.abs(y)))
@@ -137,6 +137,13 @@ def score_take(model, f: Path, heard: str):
         reasons.append(f"low word confidence {minconf:.2f} (warble/mispronounced)")
     if len(yt) / sr > 0.9 * len(norm(heard).split()) + 1.0:
         reasons.append("too long / dragging")
+    if pid:
+        from fit_timeline import WINDOWS
+
+        start, end = WINDOWS[pid]
+        speech = len(yt) / sr - 2 * PAD
+        if speech > (end - start - 0.02) * 1.05:
+            reasons.append(f"too long for its window ({speech:.2f}s > {end - start - 0.02:.2f}s +5%)")
     return {
         "take": f.name, "seed": meta["seed"], "speed": meta["speed"], "transcript": text,
         "exact": exact, "conf": round(conf, 3), "min_conf": round(minconf, 3),
@@ -146,7 +153,18 @@ def score_take(model, f: Path, heard: str):
     }
 
 
-def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
+def fit_target(pid: str, gen: str):
+    """If the line's natural length won't fit its window, return a target speech length
+    (F5 fix_duration) so the model paces the words to the window itself."""
+    from fit_timeline import WINDOWS
+
+    start, end = WINDOWS[pid]
+    room = end - start - 0.03
+    est = 0.055 * len(gen)  # measured: ~0.055 s per character at speed 0.9 with this voice
+    return round(room + 0.02, 3) if est > room else None
+
+
+def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0, fit: bool = False):
     tts, model = load_models()
     ref = str(audio / "ref-clean.wav")
     ref_text = (audio / "ref-text.txt").read_text(encoding="utf-8").strip()
@@ -163,23 +181,27 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
             if only and pid not in only:
                 continue
             gen, target_dur = VARIANTS[pid][variant - 1]
+        elif fit:
+            target_dur = fit_target(pid, gen)
+            if target_dur:
+                tag = f"_fit_s{int(round(speed * 100))}_"
             tag = f"_v{variant}_s{int(round(speed * 100))}_"
         if only and pid not in only:
             continue
         rows = []
         if score_only:
             for f in sorted(takes_dir.glob(f"{pid}_*t*.wav")):
-                rows.append(score_take(model, f, heard))
+                rows.append(score_take(model, f, heard, pid))
         else:
             # earlier takes at other speeds stay in the pool
             for f in sorted(takes_dir.glob(f"{pid}_*t*.wav")):
                 if tag not in f.name:
-                    rows.append(score_take(model, f, heard))
+                    rows.append(score_take(model, f, heard, pid))
             for k in range(TAKES):
                 seed = 1000 + int(pid[1:]) * 10 + k + (0 if abs(speed - 0.9) < 1e-6 else int(speed * 1000)) + variant * 100
                 out = takes_dir / f"{pid}{tag}t{k+1}.wav"
                 if out.exists() and out.with_suffix(".json").exists():  # resume: reuse finished takes
-                    r = score_take(model, out, heard)
+                    r = score_take(model, out, heard, pid)
                     rows.append(r)
                     print(f"  {pid} take {k+1} (cached): {r['transcript']!r} {'PASS' if r['pass'] else r['reject']}", flush=True)
                     fresh = [x for x in rows if x["pass"] and tag in x["take"]]
@@ -196,7 +218,7 @@ def run(audio: Path, only, speed: float, score_only: bool, variant: int = 0):
                 meta = {"seed": seed, "speed": speed, "gen_text": gen, "fix_duration": fix, "raw_peak": round(raw_peak, 4),
                         "raw_rms": round(float(np.sqrt(np.mean(wav**2))), 4), "gain_db": round(-20 * np.log10(gain), 2)}
                 out.with_suffix(".json").write_text(json.dumps(meta))
-                r = score_take(model, out, heard)
+                r = score_take(model, out, heard, pid)
                 rows.append(r)
                 print(f"  {pid} take {k+1}: {r['transcript']!r} conf={r['conf']} {'PASS' if r['pass'] else r['reject']}", flush=True)
                 fresh = [x for x in rows if x["pass"] and tag in x["take"]]
@@ -226,9 +248,10 @@ if __name__ == "__main__":
     ap.add_argument("--speed", type=float, default=0.9)
     ap.add_argument("--score-only", action="store_true")
     ap.add_argument("--max-takes", type=int, default=TAKES)
+    ap.add_argument("--fit", action="store_true", help="lines too long for their window are generated at the window length")
     ap.add_argument("--variant", type=int, default=0, help="use VARIANTS[pid][N-1] as the model text")
     a = ap.parse_args()
     TAKES = a.max_takes
     only = set(filter(None, a.only.split(",")))
-    run(a.audio, only, a.speed, a.score_only, a.variant)
+    run(a.audio, only, a.speed, a.score_only, a.variant, a.fit)
     sys.exit(0)
