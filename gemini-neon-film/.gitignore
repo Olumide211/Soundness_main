@@ -2,3 +2,4 @@ node_modules/
 public/gemini-neon-pack/
 out/
 .DS_Store
+tools/

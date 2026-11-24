@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Sequence} from 'remotion';
 import available from './available.json';
-import {SHOTS, sec, type Shot} from './edl';
+import {CUES, SHOTS, sec, type Shot} from './edl';
 import {Grade, GradeDefs} from './fx/Grade';
 import {Grain} from './fx/Grain';
 import {Vignette} from './fx/Vignette';
@@ -27,17 +27,9 @@ export const placeShots = (): Placed[] =>
 
 const hasAi = (id: string) => (available as Record<string, boolean>)[id] === true;
 
-const subtitleChunks = (placed: Placed[]): SubChunk[] =>
-  placed.flatMap((s) => {
-    if (!s.sub) return [];
-    const parts = s.sub.split('/').map((t) => t.trim());
-    if (parts.length === 1) return [{text: parts[0], from: s.from, duration: s.duration}];
-    const half = Math.round(s.duration / 2);
-    return [
-      {text: parts[0], from: s.from, duration: half},
-      {text: parts[1], from: s.from + half, duration: s.duration - half},
-    ];
-  });
+// Subtitles come from the CUES table (they can span cuts). Hard on/off.
+const subtitleChunks = (): SubChunk[] =>
+  CUES.map((c) => ({text: c.text, from: sec(c.at), duration: sec(c.until) - sec(c.at)}));
 
 const Picture: React.FC<{shot: Placed}> = ({shot}) => {
   if (shot.kind === 'video') {
@@ -93,7 +85,7 @@ export const Film: React.FC = () => {
         <Grain opacity={0.2} />
       </Sequence>
 
-      <Subtitles chunks={subtitleChunks(placed)} />
+      <Subtitles chunks={subtitleChunks()} />
 
       <Sequence from={end.from} durationInFrames={end.duration} name="END">
         <EndCard />
