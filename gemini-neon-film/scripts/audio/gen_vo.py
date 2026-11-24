@@ -52,6 +52,7 @@ VARIANTS = {
     "P02": [("Has a nature.", 0.85), ("Haz a nature.", 0.85), ("Has, a nature.", 0.9)],
     "P05": [("And neon?", 0.95), ("And nee-on?", 0.95)],
     "P06": [("Neon waits.", 0.66), ("Nee-on waits.", 0.66), ("Neon waits.", 0.62)],
+    "P10": [("Research.", 0.47)],  # one word: a natural 0.47 s instead of a 75 % squeeze
 }
 SOFTEST = {"P06"}
 # Manual picks, with the reason (logged in takes.json / README):

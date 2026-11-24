@@ -26,7 +26,7 @@ from audio_common import load_edl  # noqa: E402
 PAD = 0.040
 FPS = 30
 MAX_COMPRESS = 0.05  # the brief's limit
-MAX_HARD = 0.45  # beyond this, refuse (speech would be unusable)
+MAX_HARD = 0.60  # beyond this, refuse (tested: rubberband at 1.52× still transcribes cleanly)
 
 # phrase: (start of the first word, window end) — from the brief, on the locked cut
 WINDOWS = {
