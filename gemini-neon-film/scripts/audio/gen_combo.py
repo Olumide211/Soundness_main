@@ -49,14 +49,17 @@ def main(audio: Path, pids):
             target = norm(text).split()
             got = [norm(w.word) for w in words]
             print(f"  {pid} combo take {k + 1}: {' '.join(got)!r}", flush=True)
-            if len(words) < len(target):
+            line_n = len(target) - nprev if nprev else nprev_keep(target)
+            if len(words) < line_n:
                 continue
-            # cut in the gap between the two lines, at its quietest 10 ms
-            if nprev:
-                a, b = words[nprev - 1].end, words[nprev].start
-            else:
-                a, b = words[1].end, words[2].start  # after "and neon"
-            a, b = int(a * sr), int(max(b, a / sr + 0.02) * sr)
+            # cut in the pause before (or after) the line's own words, at its quietest 10 ms
+            if nprev:  # keep the LAST line_n words
+                first = words[-line_n]
+                a = words[-line_n - 1].end if len(words) > line_n else max(0.0, first.start - 0.25)
+                b = first.start
+            else:  # keep the FIRST 2 words ("and neon")
+                a, b = words[1].end, (words[2].start if len(words) > 2 else words[1].end + 0.25)
+            a, b = int(a * sr), int(max(b, a + 0.02) * sr)
             win = int(0.01 * sr)
             env = np.convolve(wav**2, np.ones(win) / win, mode="same")
             lo, hi = max(0, a - win), min(len(wav), b + win)
@@ -75,6 +78,10 @@ def main(audio: Path, pids):
             r = score_take(model, out, heard[pid], pid)
             print(f"  {pid} take {out.name}: {r['transcript']!r} conf={r['conf']} {'PASS' if r['pass'] else r['reject']}",
                   flush=True)
+
+
+def nprev_keep(target):
+    return 2
 
 
 def _to16(wav, sr):
