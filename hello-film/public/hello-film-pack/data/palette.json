@@ -1,0 +1,56 @@
+{
+ "cave": {
+  "ochre": "#E0A458",
+  "rust": "#B5652B",
+  "shadow": "#3A1F12",
+  "fireKey": "#FF9A3C",
+  "fireCore": "#FFC872"
+ },
+ "papyrus": {
+  "parchment": "#E9D8B4",
+  "parchmentShadow": "#B89A6A",
+  "ink": "#1B120C",
+  "key": "#FFE9C4"
+ },
+ "press": {
+  "brass": "#C9A15A",
+  "steel": "#9EA4AA",
+  "wood": "#5A3A22",
+  "paper": "#F1E7D2",
+  "ink": "#121010"
+ },
+ "telegraph": {
+  "electric": "#CFE8FF",
+  "electricDeep": "#4C8DFF",
+  "copper": "#B87333",
+  "brass": "#C9A15A",
+  "bg": "#0B1220"
+ },
+ "phone": {
+  "bakelite": "#0D0D0F",
+  "rim": "#CFE8FF",
+  "ring": "#CFE8FF",
+  "bg": "#0A0E16"
+ },
+ "post": {
+  "screenBg": "#0B0B0F",
+  "text": "#FFFFFF",
+  "muted": "#8A8F98",
+  "accent": "#7C5CFF",
+  "like": "#FF4D6D",
+  "divider": "#1E1F24"
+ },
+ "chat": {
+  "bg": "#0B0B0F",
+  "bubbleUser": "#1C1C22",
+  "text": "#F4F4F6",
+  "cursorGlow": "#7C5CFF",
+  "orbCore": "#FFFFFF",
+  "orbHalo": "#7C5CFF"
+ },
+ "grade": {
+  "blackPoint": "#07060A",
+  "grain": 0.04,
+  "vignette": 0.28
+ }
+}

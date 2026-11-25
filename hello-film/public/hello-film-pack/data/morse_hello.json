@@ -1,0 +1,123 @@
+{
+ "fps": 30,
+ "framesPerUnit": 2,
+ "rules": "dot=1u, dash=3u, intra-letter gap=1u, letter gap=3u",
+ "text": "HELLO",
+ "pattern": ".... . .-.. .-.. ---",
+ "firstDown": 425,
+ "lastUp": 523,
+ "events": [
+  {
+   "letter": "H",
+   "symbol": "dot",
+   "downFrame": 425,
+   "upFrame": 427,
+   "pulseLaunchFrame": 425
+  },
+  {
+   "letter": "H",
+   "symbol": "dot",
+   "downFrame": 429,
+   "upFrame": 431,
+   "pulseLaunchFrame": 429
+  },
+  {
+   "letter": "H",
+   "symbol": "dot",
+   "downFrame": 433,
+   "upFrame": 435,
+   "pulseLaunchFrame": 433
+  },
+  {
+   "letter": "H",
+   "symbol": "dot",
+   "downFrame": 437,
+   "upFrame": 439,
+   "pulseLaunchFrame": 437
+  },
+  {
+   "letter": "E",
+   "symbol": "dot",
+   "downFrame": 445,
+   "upFrame": 447,
+   "pulseLaunchFrame": 445
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 453,
+   "upFrame": 455,
+   "pulseLaunchFrame": 453
+  },
+  {
+   "letter": "L",
+   "symbol": "dash",
+   "downFrame": 457,
+   "upFrame": 463,
+   "pulseLaunchFrame": 457
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 465,
+   "upFrame": 467,
+   "pulseLaunchFrame": 465
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 469,
+   "upFrame": 471,
+   "pulseLaunchFrame": 469
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 477,
+   "upFrame": 479,
+   "pulseLaunchFrame": 477
+  },
+  {
+   "letter": "L",
+   "symbol": "dash",
+   "downFrame": 481,
+   "upFrame": 487,
+   "pulseLaunchFrame": 481
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 489,
+   "upFrame": 491,
+   "pulseLaunchFrame": 489
+  },
+  {
+   "letter": "L",
+   "symbol": "dot",
+   "downFrame": 493,
+   "upFrame": 495,
+   "pulseLaunchFrame": 493
+  },
+  {
+   "letter": "O",
+   "symbol": "dash",
+   "downFrame": 501,
+   "upFrame": 507,
+   "pulseLaunchFrame": 501
+  },
+  {
+   "letter": "O",
+   "symbol": "dash",
+   "downFrame": 509,
+   "upFrame": 515,
+   "pulseLaunchFrame": 509
+  },
+  {
+   "letter": "O",
+   "symbol": "dash",
+   "downFrame": 517,
+   "upFrame": 523,
+   "pulseLaunchFrame": 517
+  }
+ ]
+}

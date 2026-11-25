@@ -1,0 +1,96 @@
+{
+ "screen": {
+  "w": 390,
+  "h": 844,
+  "scale": 3,
+  "cornerRadius": 47,
+  "bg": "#0B0B0F",
+  "safeTop": 54,
+  "safeBottom": 34
+ },
+ "header": {
+  "y": 62,
+  "title": "new chat",
+  "font": "Inter 600 16",
+  "color": "#F4F4F6"
+ },
+ "userBubble": {
+  "text": "hello world",
+  "align": "right",
+  "x2": 374,
+  "y": 140,
+  "padX": 14,
+  "padY": 10,
+  "r": 18,
+  "bg": "#1C1C22",
+  "font": "Inter 400 17",
+  "appearFrame": 862
+ },
+ "reply": {
+  "text": "hello. what should we make today?",
+  "x": 16,
+  "y": 200,
+  "maxW": 330,
+  "font": "Inter 400 22",
+  "lineHeight": 30,
+  "color": "#F4F4F6",
+  "tokens": [
+   "hello",
+   ".",
+   " what",
+   " should",
+   " we",
+   " make",
+   " today",
+   "?"
+  ],
+  "tokenFrames": [
+   880,
+   892,
+   904,
+   913,
+   922,
+   931,
+   942,
+   954
+  ],
+  "tokenFadeFrames": 5,
+  "tokenBlurPx": [
+   6,
+   0
+  ],
+  "cursor": {
+   "w": 9,
+   "h": 22,
+   "r": 4.5,
+   "color": "#7C5CFF",
+   "glowPx": 14,
+   "glowOpacity": 0.65,
+   "hideFrame": 966
+  }
+ },
+ "tokenParticles": {
+  "perToken": 24,
+  "spawnAtTokenFrame": true,
+  "travelFrames": 22,
+  "curve": "quadratic bezier from token centre up-right then into orb",
+  "colorFrom": "#FFFFFF",
+  "colorTo": "#7C5CFF",
+  "size": [
+   1.5,
+   4
+  ]
+ },
+ "orb": {
+  "centre": [
+   195,
+   520
+  ],
+  "radiusStart": 6,
+  "radiusAtF1020": 120,
+  "growth": "radius = 6 + 114*smoothstep(880,1020,f)",
+  "core": "#FFFFFF",
+  "halo": "#7C5CFF",
+  "haloRadiusMul": 3.2
+ }
+}

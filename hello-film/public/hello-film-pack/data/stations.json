@@ -1,0 +1,86 @@
+{
+ "cave": {
+  "angleDeg": 0,
+  "centre": [
+   0.0,
+   1.2,
+   3.0
+  ],
+  "normal": [
+   0.0,
+   0,
+   1.0
+  ],
+  "what": "cave wall patch 2.4x2.4 m"
+ },
+ "papyrus": {
+  "angleDeg": 50,
+  "centre": [
+   2.2981,
+   0.9,
+   1.9284
+  ],
+  "normal": [
+   0.766,
+   0,
+   0.6428
+  ],
+  "what": "papyrus sheet 0.42x0.30 m on a lectern tilted 55deg"
+ },
+ "press": {
+  "angleDeg": 100,
+  "centre": [
+   2.9544,
+   0.95,
+   -0.5209
+  ],
+  "normal": [
+   0.9848,
+   0,
+   -0.1736
+  ],
+  "what": "press bed 0.50x0.36 m, platen above"
+ },
+ "telegraph": {
+  "angleDeg": 150,
+  "centre": [
+   1.5,
+   0.85,
+   -2.5981
+  ],
+  "normal": [
+   0.5,
+   0,
+   -0.866
+  ],
+  "what": "brass key, base 0.15 m long"
+ },
+ "phone": {
+  "angleDeg": 200,
+  "centre": [
+   -1.0261,
+   0.88,
+   -2.8191
+  ],
+  "normal": [
+   -0.342,
+   0,
+   -0.9397
+  ],
+  "what": "rotary phone, 0.22 m wide"
+ },
+ "smartphone": {
+  "angleDeg": 250,
+  "centre": [
+   -2.8191,
+   1.1,
+   -1.0261
+  ],
+  "normal": [
+   -0.9397,
+   0,
+   -0.342
+  ],
+  "what": "smartphone 0.0715x0.147 m, 15deg tilt"
+ }
+}

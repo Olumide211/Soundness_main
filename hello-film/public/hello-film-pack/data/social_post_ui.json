@@ -1,0 +1,220 @@
+{
+ "screen": {
+  "w": 390,
+  "h": 844,
+  "scale": 3,
+  "cornerRadius": 47,
+  "bg": "#0B0B0F",
+  "safeTop": 54,
+  "safeBottom": 34
+ },
+ "statusBar": {
+  "y": 18,
+  "time": "9:41",
+  "font": "Inter 600 15",
+  "color": "#FFFFFF"
+ },
+ "topBar": {
+  "y": 62,
+  "h": 44,
+  "left": {
+   "text": "cancel",
+   "font": "Inter 400 16",
+   "color": "#FFFFFF",
+   "x": 16
+  },
+  "right": {
+   "type": "pill",
+   "text": "post",
+   "x": 302,
+   "w": 72,
+   "h": 34,
+   "r": 17,
+   "bg": "#FFFFFF",
+   "fg": "#0B0B0F",
+   "font": "Inter 600 15",
+   "disabledOpacity": 0.45,
+   "pressFrame": 792
+  }
+ },
+ "composer": {
+  "avatar": {
+   "x": 16,
+   "y": 122,
+   "size": 40,
+   "src": "svg/avatar_breezeog.svg"
+  },
+  "name": {
+   "text": "BreezeOg",
+   "x": 68,
+   "y": 128,
+   "font": "Inter 700 15",
+   "color": "#FFFFFF"
+  },
+  "handle": {
+   "text": "@BreezeOg1",
+   "x": 148,
+   "y": 128,
+   "font": "Inter 400 15",
+   "color": "#8A8F98"
+  },
+  "input": {
+   "x": 68,
+   "y": 154,
+   "font": "Inter 400 20",
+   "color": "#FFFFFF",
+   "placeholder": "what's happening?",
+   "placeholderColor": "#5A5F68",
+   "typed": "hello world",
+   "caret": {
+    "w": 2,
+    "h": 24,
+    "color": "#7C5CFF",
+    "blinkPeriodFrames": 16
+   }
+  }
+ },
+ "keyboard": {
+  "y": 548,
+  "h": 296,
+  "bg": "#16161B",
+  "keyBg": "#2A2A31",
+  "keyR": 6,
+  "rows": [
+   "qwertyuiop",
+   "asdfghjkl",
+   "zxcvbnm"
+  ],
+  "keyW": 33,
+  "keyH": 42,
+  "gapX": 6,
+  "gapY": 12,
+  "font": "Inter 400 22",
+  "pressedKeyHighlight": "#4A4A55",
+  "popupOnPress": true,
+  "hideAfterFrame": 796,
+  "hideDurationFrames": 10
+ },
+ "publishedPost": {
+  "appearFrame": 798,
+  "y": 122,
+  "cardPaddingX": 16,
+  "name": "BreezeOg",
+  "handle": "@BreezeOg1 \u00b7 now",
+  "body": "hello world",
+  "bodyFont": "Inter 400 22",
+  "actionsY": 214,
+  "actions": [
+   {
+    "icon": "reply",
+    "from": 0,
+    "to": 128,
+    "x": 68
+   },
+   {
+    "icon": "repost",
+    "from": 0,
+    "to": 342,
+    "x": 150
+   },
+   {
+    "icon": "like",
+    "from": 0,
+    "to": 2400,
+    "display": "2.4K",
+    "x": 232,
+    "activeColor": "#FF4D6D"
+   },
+   {
+    "icon": "views",
+    "from": 0,
+    "to": 18000,
+    "display": "18K",
+    "x": 314
+   }
+  ],
+  "countUp": {
+   "startFrame": 804,
+   "endFrame": 836,
+   "spring": {
+    "mass": 1,
+    "stiffness": 120,
+    "damping": 18
+   },
+   "font": "GeistMono 500 14",
+   "tabularNums": true
+  },
+  "replyBubbles": {
+   "count": 6,
+   "spawnFrames": [
+    810,
+    815,
+    819,
+    824,
+    828,
+    832
+   ],
+   "size": [
+    26,
+    44
+   ],
+   "riseMetres": 0.06,
+   "fade": 18,
+   "color": "#1C1C22",
+   "dotColor": "#8A8F98"
+  }
+ },
+ "typingSchedule": {
+  "firstFrame": 735,
+  "keystrokes": [
+   {
+    "char": "h",
+    "frame": 735
+   },
+   {
+    "char": "e",
+    "frame": 740
+   },
+   {
+    "char": "l",
+    "frame": 744
+   },
+   {
+    "char": "l",
+    "frame": 748
+   },
+   {
+    "char": "o",
+    "frame": 753
+   },
+   {
+    "char": " ",
+    "frame": 757
+   },
+   {
+    "char": "w",
+    "frame": 765
+   },
+   {
+    "char": "o",
+    "frame": 770
+   },
+   {
+    "char": "r",
+    "frame": 774
+   },
+   {
+    "char": "l",
+    "frame": 778
+   },
+   {
+    "char": "d",
+    "frame": 783
+   }
+  ],
+  "lastFrame": 783,
+  "thumbTapDownFrames": 2,
+  "thumb": "models/hand/generic-hand_right.glb"
+ },
+ "noRealLogos": true
+}

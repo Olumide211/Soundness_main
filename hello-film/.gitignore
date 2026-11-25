@@ -1,0 +1,6 @@
+node_modules/
+review/tmp/
+review/lowres/*.mp4
+out/seq*/
+out/*.png
+*.log
