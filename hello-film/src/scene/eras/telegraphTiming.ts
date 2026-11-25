@@ -23,13 +23,28 @@ export function pulsesAt(f: number): Pulse[] {
 }
 const _p = new THREE.Vector3();
 export function pulseLights(f: number): {pos: THREE.Vector3; k: number}[] {
-  const ps = pulsesAt(f).filter((p) => p.s > -p.len && p.s < WIRE_B_LEN).slice(-3);
+  // only pulses near the key get a light; each fades in with age and out with distance (no on/off pops)
+  const ps = pulsesAt(f).filter((p) => p.s > -p.len && p.s < 0.5).slice(-3);
   return ps.map((p) => {
     const u = Math.min(1, Math.max(0, p.s / WIRE_B_LEN));
     WIRE_B.getPointAt(u, _p);
-    const k = Math.min(1, (p.s + p.len) / p.len) * Math.min(1, (WIRE_B_LEN - p.s) / 0.2);
-    return {pos: _p.clone().add(new THREE.Vector3(0, 0.035, 0.01)), k: Math.max(0, k)};
+    const age = f - p.launch;
+    const kIn = Math.min(1, Math.max(0, age / 5));
+    const kOut = 1 - Math.min(1, Math.max(0, (p.s - 0.2) / 0.3));
+    const k = kIn * kIn * (3 - 2 * kIn) * kOut * kOut;
+    return {pos: _p.clone().add(new THREE.Vector3(0, 0.035, 0.01)), k};
   });
+}
+/** smoothed press amount 0..1 for the finger (eased over +-2 f around each event) */
+export function pressAmount(f: number) {
+  let k = 0;
+  for (const e of EVENTS) {
+    const a = Math.min(1, Math.max(0, (f - (e.downFrame - 2)) / 2));
+    const b = Math.min(1, Math.max(0, ((e.upFrame + 2) - f) / 2));
+    const t = Math.min(a, b);
+    k = Math.max(k, t * t * (3 - 2 * t));
+  }
+  return k;
 }
 export const CONTACT_WORLD = toWorld('telegraph', KEY.contactLocal.x, KEY.contactLocal.y, KEY.contactLocal.z);
 export function sparkFlash(f: number) {

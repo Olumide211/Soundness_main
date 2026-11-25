@@ -31,7 +31,7 @@ function addDissolve(m: THREE.MeshPhysicalMaterial, u: {uDis: {value: number}; u
     s.fragmentShader = s.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vObjP; uniform float uDis; uniform vec3 uGlow;' + NOISE_GLSL + '\nfloat disEdge;')
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n{ float n = rn3(vObjP * 260.0) * 0.7 + rn3(vObjP * 60.0) * 0.3; float th = uDis * 1.08 - 0.04; if (n < th) discard; disEdge = (uDis > 0.001 && uDis < 0.999) ? 1.0 - smoothstep(0.0, 0.05, n - th) : 0.0; }')
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGlow * disEdge * 6.0;');
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGlow * disEdge * 2.5;');
   };
   m.customProgramCacheKey = () => 'dis_' + m.uuid;
 }
@@ -99,11 +99,11 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
   R.uiTex.needsUpdate = true;
 
   // ---- materialise / dissolve ----
-  const dis = f < 1000 ? 1 - smoothstep(690, 712, f) : smoothstep(1040, 1100, f);
+  const dis = f < 1000 ? 1 - smoothstep(700, 722, f) : smoothstep(1040, 1100, f);
   R.disU.uDis.value = dis;
   R.disU.uGlow.value.set(f < 1000 ? '#CFE8FF' : '#FFC872');
   // power on: 0 -> 1 over 8 f, overshoot 1.08, back
-  const po = f < 712 ? 0 : f < 720 ? easeOutCubic((f - 712) / 8) * 1.08 : lerp(1.08, 1, smoothstep(720, 726, f));
+  const po = f < 716 ? 0 : f < 724 ? easeOutCubic((f - 716) / 8) * 1.08 : lerp(1.08, 1, smoothstep(724, 730, f));
   R.scrU.uPower.value = po;
   R.screen.emissiveIntensity = lerp(1.55, 1.0, screenMix);
   R.screen.envMapIntensity = lerp(1.0, 0.04, smoothstep(830, 856, f));
@@ -180,10 +180,10 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
       {showBody && (
         <group position={pos} quaternion={q}>
           <mesh geometry={R.body} material={R.frame} castShadow />
-          <mesh material={R.glassBlack} position={[0, 0, PHONE.d / 2 + 0.0001]}><planeGeometry args={[PHONE.w - 0.0028, PHONE.h - 0.0028]} /></mesh>
+          <mesh visible={f < 1040} material={R.glassBlack} position={[0, 0, PHONE.d / 2 + 0.0001]}><planeGeometry args={[PHONE.w - 0.0028, PHONE.h - 0.0028]} /></mesh>
           <mesh material={R.screen} position={[0, 0, PHONE.d / 2 + 0.0003]} renderOrder={2}><planeGeometry args={[PHONE.scrW, PHONE.scrH]} /></mesh>
           {/* camera island (back, top-left) */}
-          <group position={[-0.018, 0.055, -PHONE.d / 2 - 0.0008]} rotation={[Math.PI / 2, 0, 0]}>
+          <group visible={f < 1048} position={[-0.018, 0.055, -PHONE.d / 2 - 0.0008]} rotation={[Math.PI / 2, 0, 0]}>
             {[[0, 0.007], [0, -0.007], [0.012, 0]].map(([x, z], k) => (
               <group key={k} position={[x, 0, z]}>
                 <mesh material={R.alu}><cylinderGeometry args={[0.0052, 0.0052, 0.0016, 32]} /></mesh>
@@ -192,9 +192,9 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
             ))}
           </group>
           {/* side buttons */}
-          <mesh material={R.alu} position={[PHONE.w / 2 + 0.0004, 0.03, 0]}><boxGeometry args={[0.0012, 0.018, 0.003]} /></mesh>
-          <mesh material={R.alu} position={[-PHONE.w / 2 - 0.0004, 0.04, 0]}><boxGeometry args={[0.0012, 0.01, 0.003]} /></mesh>
-          <mesh material={R.alu} position={[-PHONE.w / 2 - 0.0004, 0.025, 0]}><boxGeometry args={[0.0012, 0.01, 0.003]} /></mesh>
+          <mesh visible={f < 1048} material={R.alu} position={[PHONE.w / 2 + 0.0004, 0.03, 0]}><boxGeometry args={[0.0012, 0.018, 0.003]} /></mesh>
+          <mesh visible={f < 1048} material={R.alu} position={[-PHONE.w / 2 - 0.0004, 0.04, 0]}><boxGeometry args={[0.0012, 0.01, 0.003]} /></mesh>
+          <mesh visible={f < 1048} material={R.alu} position={[-PHONE.w / 2 - 0.0004, 0.025, 0]}><boxGeometry args={[0.0012, 0.01, 0.003]} /></mesh>
         </group>
       )}
       {showThumb && (

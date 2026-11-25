@@ -30,7 +30,7 @@ export function eraColour(f: number, out = new THREE.Color()) {
 }
 
 const BACKDROP: Record<StationName, {floorY: number; floorR: number; tint: string}> = {
-  cave: {floorY: -1.2, floorR: 3.0, tint: '#0A0604'},
+  cave: {floorY: -1.65, floorR: 3.0, tint: '#0A0604'},
   papyrus: {floorY: -0.9, floorR: 1.8, tint: '#120C08'},
   press: {floorY: -0.95, floorR: 1.8, tint: '#0E0C0B'},
   telegraph: {floorY: -0.02, floorR: 0.9, tint: '#0B1220'},
@@ -51,8 +51,16 @@ function makeFloorMat(tint: string) {
   return m;
 }
 
+/** false when the camera is within 0.35 m of this station's cyclorama surface (never clip through it) */
+function nearCyc(k: StationName, cam: THREE.Vector3) {
+  const c = stationPos(k);
+  const n = new THREE.Vector3(Math.sin(stationRotY(k)), 0, Math.cos(stationRotY(k)));
+  const cx = c.x + n.x * 0.6, cz = c.z + n.z * 0.6;
+  const d = Math.hypot(cam.x - cx, cam.z - cz);
+  return Math.abs(d - 2.2) > 0.65;
+}
 /** cyclorama + soft floor disc for each station; the cave uses its own wall. */
-export const Backdrops: React.FC = () => {
+export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
   const mats = useMemo(() => {
     const out: Record<string, {cyc: THREE.Material; floor: THREE.Material}> = {};
     for (const k of Object.keys(BACKDROP)) {
@@ -70,7 +78,7 @@ export const Backdrops: React.FC = () => {
         const b = BACKDROP[k];
         return (
           <StationRoot key={k} name={k}>
-            {k !== 'cave' && (
+            {k !== 'cave' && nearCyc(k, camPos) && (
               // arc centred on the station, behind it (local -Z), spanning +-75 deg
               <mesh position={[0, 0.3, 0.6]} material={mats[k].cyc}>
                 <cylinderGeometry args={[2.2, 2.2, 3.2, 64, 1, true, Math.PI - THREE.MathUtils.degToRad(78), THREE.MathUtils.degToRad(156)]} />

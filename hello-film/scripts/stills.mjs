@@ -15,6 +15,7 @@ const serveUrl = process.env.BUNDLE || await bundle({
   publicDir: path.join(root, 'public'),
 });
 const inputProps = JSON.parse(propsArg);
+if (process.env.DBG) inputProps.__dbg = 1;
 const browser = await openBrowser('chrome', {chromiumOptions: {gl}});
 const composition = await selectComposition({serveUrl, id, inputProps, puppeteerInstance: browser, chromiumOptions: {gl}, timeoutInMilliseconds: 180000});
 fs.mkdirSync(outDir, {recursive: true});

@@ -13,7 +13,7 @@ const posCurve = new THREE.CatmullRomCurve3(keys.map((k) => new THREE.Vector3(..
 const tgtCurve = new THREE.CatmullRomCurve3(keys.map((k) => new THREE.Vector3(...(k.target as [number, number, number]))), true, 'centripetal', 0.5);
 
 /** periodic Fritsch–Carlson monotone cubic through (frame_i, y_i), period L */
-function makeMonotone(xs: number[], ys: number[], periodicY?: number) {
+function makeMonotone(xs: number[], ys: number[], periodicY?: number, zeroAtLoop = false) {
   const n = xs.length;
   // extended arrays with wrap
   const X = [xs[n - 1] - L, ...xs, xs[0] + L, xs[1] + L];
@@ -31,6 +31,7 @@ function makeMonotone(xs: number[], ys: number[], periodicY?: number) {
       t[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
     }
   }
+  if (zeroAtLoop) { t[1] = 0; t[m - 2] = 0; } // ease in/out of the loop key (frame 0 == 1200)
   return (x: number) => {
     x = ((x % L) + L) % L;
     let i = 1;
@@ -43,7 +44,7 @@ function makeMonotone(xs: number[], ys: number[], periodicY?: number) {
 }
 const frames = keys.map((k) => k.frame);
 // frame -> curve index (0..N), monotone, C1, periodic (index wraps by N)
-const indexOf = makeMonotone(frames, keys.map((_, i) => i), N);
+const indexOf = makeMonotone(frames, keys.map((_, i) => i), N, true);
 const fovOf = makeMonotone(frames, keys.map((k) => k.fovDeg));
 const focusOf = makeMonotone(frames, keys.map((k) => k.focusDistance));
 

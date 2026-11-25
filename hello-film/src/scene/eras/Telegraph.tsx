@@ -4,7 +4,7 @@ import {getAssets, texSet, TILE} from '../../lib/assets';
 import {StationRoot} from '../World';
 import {stationMatrix, toWorld} from '../../lib/stations';
 import {WIRE_A, WIRE_A_LEN, WIRE_B, WIRE_B_LEN, PAGE} from '../layout';
-import {EVENTS, keyArmDeg, pulsesAt, CONTACT_WORLD} from './telegraphTiming';
+import {EVENTS, keyArmDeg, pulsesAt, CONTACT_WORLD, pressAmount} from './telegraphTiming';
 import {Hand, POSES, mixPose} from '../hands/Hand';
 import {easeInOutCubic, easeOutCubic, remap, smoothstep, lerp, clamp01} from '../../lib/ease';
 import {morseLayout, pxToPage} from '../morph/glyphToMorse';
@@ -175,9 +175,11 @@ export const Telegraph: React.FC<{frame: number}> = ({frame: f}) => {
   // knob in station-local (key group is at station origin); account for arm rotation about the pivot
   const kp = R.key.knob.clone().sub(R.key.pivot).applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(armDeg)).add(R.key.pivot);
   void knobW;
-  const pressK = clamp01(-armDeg / 4);
+  const pressK = pressAmount(f);
   const handIn = easeOutCubic(remap(f, 408, 424)) * (1 - easeInOutCubic(remap(f, 526, 545)));
-  const tipLocal = kp.clone().add(new THREE.Vector3(0.0, 0.004, 0)).add(new THREE.Vector3(0.12, 0.08, 0.05).multiplyScalar(1 - handIn));
+  const kpS = R.key.knob.clone().sub(R.key.pivot).applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(-4 * pressK)).add(R.key.pivot);
+  void kp;
+  const tipLocal = kpS.clone().add(new THREE.Vector3(0.0, 0.004, 0)).add(new THREE.Vector3(0.12, 0.08, 0.05).multiplyScalar(1 - handIn));
   const tipW = toWorld('telegraph', tipLocal.x, tipLocal.y, tipLocal.z);
   const sm = stationMatrix('telegraph');
   const dirW = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z).transformDirection(sm);

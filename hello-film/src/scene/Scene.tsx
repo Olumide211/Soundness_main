@@ -30,7 +30,7 @@ export const Scene: React.FC<HelloProps & {rawFrame: number}> = ({rawFrame, vert
       <Environment />
       <CameraRig rawFrame={rawFrame} vertical={vertical} credit={credit} />
       <Lights credit={credit} />
-      <Backdrops />
+      <Backdrops camPos={cam.pos} />
       {mounted(f, MOUNT.cave) && <CaveWall frame={f} />}
       {mounted(f, MOUNT.papyrus) && <Papyrus frame={f} />}
       {mounted(f, MOUNT.press) && <Press frame={f} />}

@@ -62,3 +62,17 @@ build machine, with the choice made and why. "Prompt" = `PROMPT.md` (the v2 buil
 - **Credit tail camera** eases to a stop over ~5 frames after 1200 instead of an instant freeze (a hard stop is a
   visible jolt); world time restarts at frame 0, so embers/flicker continue seamlessly.
 - **Credit grain:** the 2D credit text sits above the WebGL canvas, so grain runs over the scene underneath it.
+- **Loop point velocity.** The camera's time-mapping has zero velocity exactly at the loop key (frame 0 == 1200),
+  matching the storyboard's `inOutSine` into `loop_close`. With momentum through frame 0 the rock texture moved
+  ~4.8/255 per frame, so the seam failed the absolute < 3/255 check even though it equalled normal motion.
+- **Rings → smartphone (675–720).** The flattened rings are interpolated in camera space and held near the view axis
+  until ~712, then stack into the phone as it enters frame at ~716 (the phone materialises 700–722 and powers on at
+  716 instead of 712). With the literal station-space path both were off-screen and 696–714 was black.
+- **Backdrop clipping.** Any cyclorama surface within 0.65 m of the camera is hidden; during the chat the camera
+  (with the phone 12 cm in front of it) crosses the smartphone cyclorama, which otherwise cut across the screen
+  for two frames (caught by the pop detector review at f966–967).
+- **Telegraph pulse lights** fade in over 5 f and only light pulses within 0.5 m of the key; the finger press is
+  smoothed over ±2 f. The pop detector flagged the first key-down of each letter (445/453/477/501) because a pooled
+  light switched on at full strength in one frame.
+- **Smartphone glass** loses its clearcoat/specular while it fills the frame: the near-mirror LTC area-light
+  specular aliased into a visible checker pattern under SwiftShader.

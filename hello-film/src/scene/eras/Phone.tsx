@@ -7,7 +7,8 @@ import {Hand, POSES, mixPose} from '../hands/Hand';
 import {easeInOutCubic, easeInOutQuad, easeOutCubic, easeOutQuad, remap, smoothstep, lerp, clamp01} from '../../lib/ease';
 import {superellipse} from '../morph/ringToSuperellipse';
 import {phoneStationMatrix} from './returnTiming';
-import {carrierAt} from '../../lib/camera';
+import {cameraMatrix, shotCamera} from '../../lib/camera';
+import {SHOT} from '../../lib/shot';
 import {PHONE} from '../layout';
 
 const PM = stationMatrix('phone');
@@ -150,28 +151,40 @@ export const Phone: React.FC<{frame: number}> = ({frame: f}) => {
   phoneStationMatrix(f).decompose(smP, smQ, tmpS);
   for (let k = 0; k < 6; k++) {
     const t0 = RING_SPAWN(k);
-    if (f < t0 || f > 712) continue;
+    if (f < t0 || f > 728) continue;
     const g = easeOutCubic(remap(f, t0, t0 + 30));
     const r = 0.12 * g;
     const op = lerp(1, 0.4, g);
-    const m = easeInOutCubic(remap(f, 675 + k * 2, 702));
+    const rawT = remap(f, 675 + k * 2, 720);
+    const m = easeInOutCubic(rawT);
     const n = lerp(2, 8, m);
     const a = lerp(r, PHONE.w / 2, m), b = lerp(r, PHONE.h / 2, m);
     const pts = superellipse(Math.max(a, 0.001), Math.max(b, 0.001), n, 96);
     const mesh = R.ringMeshes[k];
     mesh.geometry.dispose();
     mesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 96, 0.0006 * (1 + 1.5 * (1 - g) * 0), 6, true);
-    // travel along the carrier to the smartphone and stack into its edge
+    // travel to the smartphone and stack into its edge; interpolated in camera space so they stay in frame
     const towards = smP.clone().add(new THREE.Vector3(0, 0, (k - 2.5) * 0.0013).applyQuaternion(smQ));
-    const mid = carrierAt(f, 12);
-    let pos = earW.clone().add(new THREE.Vector3(0, 0, 0.03 + k * 0.006).applyQuaternion(faceQ));
+    const startW = earW.clone().add(new THREE.Vector3(0, 0, 0.03 + k * 0.006).applyQuaternion(faceQ));
+    let pos = startW, quat = faceQ.clone();
     if (m > 0) {
-      const u = m;
-      pos = pos.clone().multiplyScalar((1 - u) * (1 - u)).addScaledVector(mid, 2 * u * (1 - u)).addScaledVector(towards, u * u);
+      const camNow = cameraMatrix(shotCamera(f, SHOT.vertical, false));
+      const camStart = cameraMatrix(shotCamera(675 + k * 2, SHOT.vertical, false));
+      const invNow = camNow.clone().invert();
+      const relStart = startW.clone().applyMatrix4(camStart.clone().invert());
+      const relEnd = towards.clone().applyMatrix4(invNow);
+      const axisPt = new THREE.Vector3((k - 2.5) * 0.02, 0, -0.42 - k * 0.03);
+      const rel = relStart.clone().lerp(relEnd, m).lerp(axisPt, 0.92 * smoothstep(0, 0.2, rawT) * (1 - smoothstep(0.8, 1, rawT)));
+      pos = rel.applyMatrix4(camNow);
+      const qCamNow = new THREE.Quaternion().setFromRotationMatrix(camNow);
+      const qCamStart = new THREE.Quaternion().setFromRotationMatrix(camStart);
+      const qRelStart = qCamStart.clone().invert().multiply(faceQ);
+      const qRelEnd = qCamNow.clone().invert().multiply(smQ);
+      quat = qCamNow.multiply(qRelStart.slerp(qRelEnd, m));
     }
     mesh.position.copy(pos);
-    mesh.quaternion.copy(faceQ.clone().slerp(smQ, m));
-    R.ringMats[k].opacity = op * (1 - smoothstep(700, 712, f));
+    mesh.quaternion.copy(quat);
+    R.ringMats[k].opacity = op * (1 - smoothstep(716, 728, f));
     rings.push(<primitive key={k} object={mesh} />);
   }
 

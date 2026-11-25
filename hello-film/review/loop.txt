@@ -1,0 +1,6 @@
+Loop check (grain off), mean |diff| per channel in 0-255 units
+|f1199 - f0|    = 0.8073  (must be < 3.0)        -> PASS
+|f1198 - f1199| = 2.0509
+|f0 - f1|       = 0.2568 (reference)
+seam <= 1.5 x normal motion: 0.8073 <= 3.0763 -> PASS
+LOOP PASS

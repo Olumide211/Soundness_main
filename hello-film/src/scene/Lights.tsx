@@ -103,7 +103,7 @@ export const Lights: React.FC<{credit: boolean}> = ({credit}) => {
   });
   const sp = sparkFlash(f);
   L.spark.position.copy(sp.pos);
-  L.spark.intensity = sp.k * CAL * 0.3;
+  L.spark.intensity = sp.k * CAL * 0.12;
   // environment intensity
   let env = 0;
   for (const k in w) env += (w as any)[k] * (ENV[k] ?? 0.5);

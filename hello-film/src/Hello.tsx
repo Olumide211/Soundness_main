@@ -15,6 +15,7 @@ export const Hello: React.FC<HelloProps> = (props) => {
   const frame = useCurrentFrame();
   const [ready, setReady] = useState(false);
   const [handle] = useState(() => delayRender('loading hello-film-pack assets', {timeoutInMilliseconds: 180000}));
+  (globalThis as any).__dbg = (props as any).__dbg;
   SHOT.vertical = props.vertical;
   SHOT.credit = props.credit;
   SHOT.grain = props.grain !== false;
