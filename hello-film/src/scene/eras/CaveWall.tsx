@@ -6,7 +6,7 @@ import {PigmentData, PATCH} from '../particles/pigmentData';
 import {MOTIFS} from '../particles/pigmentData';
 
 export const WALL_R = 6;
-export const WALL_W = 6, WALL_H = 4;
+export const WALL_W = 3.1, WALL_H = 4; // narrowed so the return camera passes the wall's edge instead of through it
 export const wallZ = (x: number) => WALL_R - Math.sqrt(WALL_R * WALL_R - x * x);
 
 const HAND = MOTIFS[0];

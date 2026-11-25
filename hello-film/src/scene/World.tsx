@@ -36,7 +36,7 @@ const BACKDROP: Record<StationName, {floorY: number; floorR: number; tint: strin
   press: {floorY: -0.95, floorR: 1.8, tint: '#0E0C0B'},
   telegraph: {floorY: -0.02, floorR: 0.9, tint: '#0B1220'},
   phone: {floorY: -0.06, floorR: 0.9, tint: '#0A0E16'},
-  smartphone: {floorY: -0.42, floorR: 1.2, tint: '#08080B'},
+  smartphone: {floorY: -0.42, floorR: 1.2, tint: '#1C1B26'},
 };
 
 function makeFloorMat(tint: string) {
@@ -82,7 +82,10 @@ export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
       {(Object.keys(BACKDROP) as StationName[]).map((k) => {
         const b = BACKDROP[k];
         // the smartphone backdrop clears with the ragged screen so the cave shows through it (return, 1040-1072)
-        const fade = k === 'cave' ? 0 : nearCyc(k, camPos) * (k === 'smartphone' && frame >= 1000 ? 1 - smoothstep(1036, 1070, frame) : 1);
+        // during the return every other station's backdrop clears (they would silhouette against the rock fill)
+        const ret = frame >= 1000 ? (k === 'smartphone' ? smoothstep(1036, 1070, frame) : smoothstep(1030, 1046, frame)) * (1 - smoothstep(1118, 1150, frame)) : 0;
+        const fade = k === 'cave' ? 0 : nearCyc(k, camPos) * (1 - ret);
+        (mats[k].floor as THREE.MeshStandardMaterial).opacity = 1 - ret;
         (mats[k].cyc as THREE.MeshStandardMaterial).opacity = fade;
         return (
           <StationRoot key={k} name={k}>
@@ -92,7 +95,7 @@ export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
                 <cylinderGeometry args={[2.2, 2.2, 3.2, 64, 1, true, Math.PI - THREE.MathUtils.degToRad(78), THREE.MathUtils.degToRad(156)]} />
               </mesh>
             )}
-            <mesh position={[0, b.floorY, 0.2]} rotation={[-Math.PI / 2, 0, 0]} material={mats[k].floor} renderOrder={-1}>
+            <mesh visible={ret < 0.999} position={[0, b.floorY, 0.2]} rotation={[-Math.PI / 2, 0, 0]} material={mats[k].floor} renderOrder={-1}>
               <circleGeometry args={[b.floorR, 96]} />
             </mesh>
           </StationRoot>
