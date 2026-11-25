@@ -1,0 +1,2 @@
+hello-loop-1x1.mp4: 1080x1080 30/1 nb_frames=1200 packets=1200 h264 yuv420p audio_streams=0 audio_probe="" -> PASS
+ALL PASS
