@@ -1,1 +1,3 @@
 forbidden API scan (Math.random|Date.now|performance.now) in src/: none found - PASS
+forbidden API scan (Math.random|Date.now|performance.now) in src/: none found - PASS
+frame 700 rendered twice in separate processes (grain on): 1577435 vs 1577435 bytes -> BYTE-IDENTICAL PASS

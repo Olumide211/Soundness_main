@@ -57,7 +57,10 @@ function nearCyc(k: StationName, cam: THREE.Vector3) {
   const n = new THREE.Vector3(Math.sin(stationRotY(k)), 0, Math.cos(stationRotY(k)));
   const cx = c.x + n.x * 0.6, cz = c.z + n.z * 0.6;
   const d = Math.hypot(cam.x - cx, cam.z - cz);
-  return Math.abs(d - 2.2) > 0.65;
+  // smooth fade (0 near the surface, 1 well away) instead of a hard toggle: a toggle pops in transit
+  const x = Math.abs(d - 2.2);
+  const t = Math.min(1, Math.max(0, (x - 0.45) / (1.6 - 0.45)));
+  return t * t * (3 - 2 * t);
 }
 /** cyclorama + soft floor disc for each station; the cave uses its own wall. */
 export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
@@ -65,7 +68,7 @@ export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
     const out: Record<string, {cyc: THREE.Material; floor: THREE.Material}> = {};
     for (const k of Object.keys(BACKDROP)) {
       const b = BACKDROP[k as StationName];
-      const cyc = new THREE.MeshStandardMaterial({color: new THREE.Color(b.tint).multiplyScalar(1.6), roughness: 1, metalness: 0, side: THREE.BackSide});
+      const cyc = new THREE.MeshStandardMaterial({color: new THREE.Color(b.tint).multiplyScalar(1.6), roughness: 1, metalness: 0, side: THREE.BackSide, transparent: true, depthWrite: false});
       const floor = makeFloorMat(b.tint);
       floor.onBeforeCompile = ((orig) => (s: any, r: any) => { orig(s, r); s.uniforms.uR.value = b.floorR; })(floor.onBeforeCompile as any);
       out[k] = {cyc, floor};
@@ -76,11 +79,13 @@ export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
     <>
       {(Object.keys(BACKDROP) as StationName[]).map((k) => {
         const b = BACKDROP[k];
+        const fade = k === 'cave' ? 0 : nearCyc(k, camPos);
+        (mats[k].cyc as THREE.MeshStandardMaterial).opacity = fade;
         return (
           <StationRoot key={k} name={k}>
-            {k !== 'cave' && nearCyc(k, camPos) && (
+            {fade > 0.002 && (
               // arc centred on the station, behind it (local -Z), spanning +-75 deg
-              <mesh position={[0, 0.3, 0.6]} material={mats[k].cyc}>
+              <mesh position={[0, 0.3, 0.6]} material={mats[k].cyc} renderOrder={-2}>
                 <cylinderGeometry args={[2.2, 2.2, 3.2, 64, 1, true, Math.PI - THREE.MathUtils.degToRad(78), THREE.MathUtils.degToRad(156)]} />
               </mesh>
             )}

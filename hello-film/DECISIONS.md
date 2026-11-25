@@ -76,3 +76,5 @@ build machine, with the choice made and why. "Prompt" = `PROMPT.md` (the v2 buil
   light switched on at full strength in one frame.
 - **Smartphone glass** loses its clearcoat/specular while it fills the frame: the near-mirror LTC area-light
   specular aliased into a visible checker pattern under SwiftShader.
+- **Cyclorama fade.** Cycloramas fade out smoothly as the camera nears their surface (0 within 0.45 m, full at 1.6 m)
+  instead of a hard on/off toggle; the toggle popped in the pop detector on transits (f250/260, 404/407, 554/557).
