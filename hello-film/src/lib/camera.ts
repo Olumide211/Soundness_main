@@ -3,6 +3,7 @@ import data from '../../public/hello-film-pack/data/camera_keyframes.json';
 import {pnoise} from './noise';
 import {smoothstep} from './ease';
 import {eraWeights} from './eras';
+import {SHOT} from './shot';
 
 type Key = {frame: number; position: number[]; target: number[]; fovDeg: number; focusDistance: number; ease: string; beat: string};
 const keys: Key[] = (data.keyframes as Key[]).filter((k) => k.frame < 1200); // 24 distinct keys
@@ -137,4 +138,13 @@ export function bokehAt(f: number) {
   const w = eraWeights(f);
   let b = w.cave * 2 + w.papyrus * 3.5 + w.press * 3 + w.telegraph * 6 + w.phone * 4 + w.smartphone * 2.5 + w.chat * 0;
   return b;
+}
+
+/** world matrix of the shot camera at loop frame f (vertical-aware), for camera-space carriers */
+export function shotMatrix(f: number): THREE.Matrix4 {
+  return cameraMatrix(shotCamera(f, SHOT.vertical, false));
+}
+/** a point in the shot camera's space (x right, y up, d metres ahead) -> world */
+export function camPoint(f: number, x: number, y: number, d: number, M = shotMatrix(f)): THREE.Vector3 {
+  return new THREE.Vector3(x, y, -d).applyMatrix4(M);
 }

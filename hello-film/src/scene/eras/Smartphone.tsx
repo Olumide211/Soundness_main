@@ -99,7 +99,7 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
   R.uiTex.needsUpdate = true;
 
   // ---- materialise / dissolve ----
-  const dis = f < 1000 ? 1 - smoothstep(700, 722, f) : smoothstep(1040, 1100, f);
+  const dis = f < 1000 ? 1 - smoothstep(700, 722, f) : smoothstep(1036, 1074, f); // body goes with the ragged reveal so the cave shows through (no black-to-rock cut)
   R.disU.uDis.value = dis;
   R.disU.uGlow.value.set(f < 1000 ? '#CFE8FF' : '#FFC872');
   // power on: 0 -> 1 over 8 f, overshoot 1.08, back
@@ -148,7 +148,7 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
 
   // ---- reply bubbles leave the screen plane (810-832) ----
   const bubbles: React.ReactNode[] = [];
-  post.publishedPost.replyBubbles.spawnFrames.forEach((s0, i) => {
+  if (false) post.publishedPost.replyBubbles.spawnFrames.forEach((s0, i) => { // moved into the screen UI (drawPost)
     if (f < s0 || f > s0 + 20) return;
     const t = (f - s0) / 18;
     const sz = lerp(26, 44, hash(i, 41)) * PHONE.pt;
@@ -198,7 +198,7 @@ export const Smartphone: React.FC<{frame: number; screenMix: number}> = ({frame:
         </group>
       )}
       {showThumb && (
-        <Hand side="right" pose={tapPose} effector="thumb-tip" target={toWorld(tip)} fingerDir={dirP(-0.45, 0.55, -0.7)} palmDir={dirP(-0.7, -0.1, -0.7)} frame={f} seed={9} />
+        <Hand side="right" pose={tapPose} effector="thumb-tip" target={toWorld(tip)} fingerDir={dirP(-0.45, 0.55, -0.7)} palmDir={dirP(-0.7, -0.1, -0.7)} frame={f} seed={9} look="cool" enterFrame={716} />
       )}
       {bubbles}
       {orbOn && <primitive object={R.orb} />}

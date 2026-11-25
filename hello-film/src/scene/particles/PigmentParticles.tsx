@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import {getAssets} from '../../lib/assets';
 import {PigmentData, N_PIGMENT} from './pigmentData';
 import {useBillboards, BillboardPrim} from './Billboards';
-import {carrierAt} from '../../lib/camera';
+import {carrierAt, shotMatrix} from '../../lib/camera';
+import {onTop} from '../Bridge';
 import {curlDrift} from '../../lib/noise';
 import {hash, SEEDS} from '../../lib/rng';
 import {easeInOutCubic, easeOutCubic, remap, smoothstep, easeInQuad, clamp01} from '../../lib/ease';
@@ -65,6 +66,8 @@ export const PigmentParticles: React.FC<{frame: number}> = ({frame: f}) => {
   const active = (f >= 99 && f <= 162) || (f >= 1104 && f <= 1172);
   if (active) {
     const car = carrierAt(f);
+    const CM = shotMatrix(f);
+    const _c = new THREE.Vector3();
     const orb = f >= 1100 ? orbWorld(f) : null;
     for (let i = 0; i < N_PIGMENT; i++) {
       const o = i * 3;
@@ -85,9 +88,10 @@ export const PigmentParticles: React.FC<{frame: number}> = ({frame: f}) => {
           x = T.wall[o] + T.wallN[o] * pop + _d[0] * dAmp + 0.10 * lift;
           y = T.wall[o + 1] + _d[1] * dAmp + 0.06 * lift;
           z = T.wall[o + 2] + T.wallN[o + 2] * pop + _d[2] * dAmp + 0.12 * lift;
-          // ride the carrier
+          // ride a camera-space cloud (always framed while the bridge covers the transit)
           const s = easeInOutCubic(remap(f, te + 10, tl - 8));
-          x += (car.x + cx - x) * s; y += (car.y + cy - y) * s; z += (car.z + cz - z) * s;
+          _c.set(cx * 0.55, cy * 0.7 - 0.01, -(0.42 + cz * 0.6)).applyMatrix4(CM);
+          x += (_c.x - x) * s; y += (_c.y - y) * s; z += (_c.z - z) * s;
           // land on the sheet
           const l = easeInOutCubic(remap(f, tl - 12, tl));
           x += (T.sheet[o] - x) * l; y += (T.sheet[o + 1] - y) * l; z += (T.sheet[o + 2] - z) * l;
@@ -122,5 +126,6 @@ export const PigmentParticles: React.FC<{frame: number}> = ({frame: f}) => {
     bb.commit();
   }
   bb.mesh.visible = active;
-  return <BillboardPrim bb={bb} />;
+  onTop(bb.mesh, active && f < 200);
+  return <BillboardPrim bb={bb} renderOrder={active && f < 200 ? 1000 : 5} />;
 };

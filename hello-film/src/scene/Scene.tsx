@@ -12,6 +12,7 @@ import {ReturnToFire} from './eras/ReturnToFire';
 import {PigmentParticles} from './particles/PigmentParticles';
 import {Embers} from './particles/Dust';
 import {PostFX} from '../fx/PostFX';
+import {Bridge, bridgeAlpha} from './Bridge';
 import {shotCamera, bokehAt} from '../lib/camera';
 import {mounted, MOUNT} from '../lib/timeline';
 import {smoothstep, easeInCubic, remap} from '../lib/ease';
@@ -22,9 +23,10 @@ export const Scene: React.FC<HelloProps & {rawFrame: number}> = ({rawFrame, vert
   const f = rawFrame % 1200;
   const cam = shotCamera(rawFrame, vertical, credit);
   const screenMix = smoothstep(846, 866, f) * (1 - smoothstep(1036, 1080, f));
-  const exposure = credit && rawFrame >= 1200 ? 1 - 0.15 * easeInCubic(remap(rawFrame, 1200, 1230)) : 1;
+  const exposure = credit && rawFrame >= 1200 ? 1 - 0.12 * easeInCubic(remap(rawFrame, 1200, 1230)) : 1;
   let bokeh = bokehAt(f);
   if (f >= 1040) bokeh = 2.0 * smoothstep(1060, 1170, f);
+  bokeh *= 1 - 0.9 * bridgeAlpha(f);
   return (
     <>
       <Environment />
@@ -37,6 +39,7 @@ export const Scene: React.FC<HelloProps & {rawFrame: number}> = ({rawFrame, vert
       {mounted(f, MOUNT.telegraph) && <Telegraph frame={f} />}
       {mounted(f, MOUNT.phone) && <Phone frame={f} />}
       {mounted(f, MOUNT.smartphone) && <Smartphone frame={f} screenMix={screenMix} />}
+      <Bridge frame={f} cam={cam} aspect={vertical ? 1080 / 1920 : 1} />
       <ReturnToFire frame={f} rawFrame={rawFrame} credit={credit} />
       <PigmentParticles frame={f} />
       <Embers frame={f} rawFrame={rawFrame} />

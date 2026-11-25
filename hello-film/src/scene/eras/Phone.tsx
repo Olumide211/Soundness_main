@@ -261,7 +261,7 @@ export const Phone: React.FC<{frame: number}> = ({frame: f}) => {
       {rings}
       {lineNode}
       {showHand && (
-        <Hand side="right" pose={dialPose} effector="index-finger-tip" target={tipEnter} fingerDir={dir(-0.3, -0.75, -0.55)} palmDir={dir(0, -0.35, -1)} frame={f} seed={7}
+        <Hand side="right" pose={dialPose} effector="index-finger-tip" target={tipEnter} fingerDir={dir(-0.3, -0.75, -0.55)} palmDir={dir(0, -0.35, -1)} frame={f} seed={7} look="cool" enterFrame={568} ground={{point: new THREE.Vector3().setFromMatrixPosition(stationMatrix('phone')), normal: new THREE.Vector3(0, 1, 0)}}
           to={{pose: POSES.hold, effector: 'index-finger-phalanx-proximal', target: holdTarget, fingerDir: dir(-0.1, -1, -0.3), palmDir: dir(0, -0.2, -1)}} t={toHold} />
       )}
     </>

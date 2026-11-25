@@ -113,8 +113,8 @@ function inkMaterial() {
     s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aWet; attribute float aA; varying float vWet; varying float vA;').replace('#include <uv_vertex>', '#include <uv_vertex>\nvWet = aWet; vA = aA;');
     s.fragmentShader = s.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vWet; varying float vA;')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.7, 0.25, vWet);')
-      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.a *= vA; diffuseColor.rgb *= mix(1.0, 0.7, vWet);');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(0.85, 0.12, vWet);')
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.a *= vA; diffuseColor.rgb *= mix(0.8, 1.9, vWet);');
   };
   m.customProgramCacheKey = () => 'inkRibbon';
   return m;
@@ -139,12 +139,17 @@ export const Papyrus: React.FC<{frame: number}> = ({frame: f}) => {
     const N = bd.pl.pts.length;
     const ribbon = inkRibbonGeometry(N);
     const inkMat = inkMaterial();
-    const reedMat = new THREE.MeshPhysicalMaterial({color: '#B79B6A', roughness: 0.55, metalness: 0});
+    const reedMat = new THREE.MeshPhysicalMaterial({color: '#B79B6A', roughness: 0.55, metalness: 0, sheen: 0.3, sheenColor: new THREE.Color('#FFE2A8')});
+    const stone = texSet('cave_rock', 0.9 / TILE.rock, 0.6 / TILE.rock);
+    const stoneMat = new THREE.MeshPhysicalMaterial({map: stone.albedo, normalMap: stone.normal_gl, roughnessMap: stone.roughness, color: new THREE.Color('#3a3430'), roughness: 1, metalness: 0});
+    const rollT = texSet('papyrus_paper', 0.6, 0.6);
+    const rollMat = new THREE.MeshPhysicalMaterial({map: rollT.albedo, normalMap: rollT.normal_gl, color: new THREE.Color('#E0CBA2'), roughness: 0.95, sheen: 0.4, sheenColor: new THREE.Color('#FFE9C4')});
+    const rollEnd = new THREE.MeshPhysicalMaterial({color: '#C8AE80', roughness: 1});
     const reedInk = new THREE.MeshPhysicalMaterial({color: '#2a1d14', roughness: 0.35, metalness: 0});
     const hiero = getAssets().fonts.hiero;
     const glyphPath = hiero.getPath(String.fromCodePoint(0x130a7), 0, 0, 1000);
     const gb = glyphPath.getBoundingBox();
-    return {reveal, sharpC, blurC, tmpC, sharpT, blurT, sheetGeo, sheetMat, woodMat, bd, ribbon, inkMat, reedMat, reedInk, glyphPath, gb};
+    return {reveal, sharpC, blurC, tmpC, sharpT, blurT, sheetGeo, sheetMat, woodMat, bd, ribbon, inkMat, reedMat, reedInk, glyphPath, gb, stoneMat, rollMat, rollEnd};
   }, []);
 
   const u = brushU(f);
@@ -173,7 +178,7 @@ export const Papyrus: React.FC<{frame: number}> = ({frame: f}) => {
     pos.setXYZ(i * 2, p.x + nx * w, p.y + ny * w, 0.0012);
     pos.setXYZ(i * 2 + 1, p.x - nx * w, p.y - ny * w, 0.0012);
     const age = f - invBrush(su);
-    const wv = 1 - smoothstep(6, 10, age);
+    const wv = 1 - smoothstep(0, 20, age); // wet ink dries over 20 f: darkens and loses its spec
     wet.setX(i * 2, wv); wet.setX(i * 2 + 1, wv);
     aa.setX(i * 2, vis * breakup); aa.setX(i * 2 + 1, vis * breakup);
     last = i;
@@ -246,13 +251,24 @@ export const Papyrus: React.FC<{frame: number}> = ({frame: f}) => {
   return (
     <>
       <StationRoot name="papyrus">
-        {/* lectern: slanted board, post, foot */}
+        {/* heavy dark-wood writing slab on a stone plinth; the sheet rests on it between two rolled scroll ends */}
         <group rotation={[SHEET.tiltX, 0, 0]}>
-          <mesh position={[0, 0, -0.016]} material={R.woodMat}><boxGeometry args={[0.52, 0.38, 0.026]} /></mesh>
-          <mesh position={[0, -0.188, -0.0]} material={R.woodMat}><boxGeometry args={[0.52, 0.02, 0.03]} /></mesh>
+          <mesh position={[0, 0, -0.026]} material={R.woodMat} receiveShadow castShadow><boxGeometry args={[0.66, 0.44, 0.046]} /></mesh>
+          {[-1, 1].map((sx) => (
+            <group key={sx} position={[sx * (SHEET.w / 2 + 0.017), 0, 0.017]}>
+              <mesh material={R.rollMat} castShadow receiveShadow><cylinderGeometry args={[0.019, 0.019, SHEET.h + 0.012, 40]} /></mesh>
+              {[-1, 1].map((sy) => (
+                <group key={sy} position={[0, sy * (SHEET.h / 2 + 0.0062), 0]}>
+                  <mesh material={R.rollEnd} rotation={[sy > 0 ? 0 : Math.PI, 0, 0]}><circleGeometry args={[0.019, 40]} /></mesh>
+                  {[0.006, 0.011, 0.016].map((r) => (
+                    <mesh key={r} material={R.reedInk} position={[0, sy * 0.0003, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[r, 0.0005, 6, 40]} /></mesh>
+                  ))}
+                </group>
+              ))}
+            </group>
+          ))}
         </group>
-        <mesh position={[0, -0.46, -0.12]} material={R.woodMat}><boxGeometry args={[0.07, 0.86, 0.07]} /></mesh>
-        <mesh position={[0, -0.885, -0.12]} material={R.woodMat}><boxGeometry args={[0.42, 0.03, 0.34]} /></mesh>
+        <mesh position={[0, -0.52, -0.16]} material={R.stoneMat} receiveShadow castShadow><boxGeometry args={[0.6, 0.76, 0.42]} /></mesh>
       </StationRoot>
       <group matrixAutoUpdate={false} matrix={sheetM}>
         <mesh geometry={R.sheetGeo} material={R.sheetMat} receiveShadow />
@@ -261,10 +277,15 @@ export const Papyrus: React.FC<{frame: number}> = ({frame: f}) => {
       {showHand && (
         <>
           <group position={brushCentre} quaternion={brushQ}>
-            <mesh material={R.reedMat} position={[0, 0.006, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.168, 20]} /></mesh>
-            <mesh material={R.reedInk} position={[0, -0.084, 0]}><cylinderGeometry args={[0.0035, 0.0008, 0.012, 20]} /></mesh>
+            <mesh material={R.reedMat} position={[0, 0.006, 0]} castShadow><cylinderGeometry args={[0.0026, 0.0038, 0.168, 20]} /></mesh>
+            {[0.05, -0.02].map((y) => (<mesh key={y} material={R.reedMat} position={[0, y, 0]}><torusGeometry args={[0.0035, 0.0007, 8, 24]} /></mesh>))}
+            {/* frayed, ink-soaked tip: splayed fibres */}
+            {Array.from({length: 9}, (_, k) => {
+              const a = (k / 9) * Math.PI * 2, sp = 0.18 + 0.08 * Math.sin(k * 2.7);
+              return <mesh key={k} material={R.reedInk} position={[Math.cos(a) * 0.0016, -0.084, Math.sin(a) * 0.0016]} rotation={[Math.sin(a) * sp, 0, -Math.cos(a) * sp]}><cylinderGeometry args={[0.0006, 0.00025, 0.014, 5]} /></mesh>;
+            })}
           </group>
-          <Hand side="right" pose={POSES.penGrip} effector="index-finger-phalanx-distal" target={grip} fingerDir={fingerDir} palmDir={palmDir} frame={f} />
+          <Hand side="right" pose={POSES.penGrip} effector="index-finger-phalanx-distal" target={grip} fingerDir={fingerDir} palmDir={palmDir} frame={f} look="papyrus" enterFrame={152} ground={{point: new THREE.Vector3().setFromMatrixPosition(sheetM), normal: Nz}} />
         </>
       )}
     </>

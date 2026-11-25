@@ -78,3 +78,42 @@ build machine, with the choice made and why. "Prompt" = `PROMPT.md` (the v2 buil
   specular aliased into a visible checker pattern under SwiftShader.
 - **Cyclorama fade.** Cycloramas fade out smoothly as the camera nears their surface (0 within 0.45 m, full at 1.6 m)
   instead of a hard on/off toggle; the toggle popped in the pop detector on transits (f250/260, 404/407, 554/557).
+
+## Polish pass (v3)
+- **Era hand-offs (bridges).** Each hand-off that used to rush the lens into a dark shape is covered by a camera-locked
+  material surface (`src/scene/Bridge.tsx`) that dissolves in over the departing station with a noise threshold,
+  morphs its material (rock → papyrus fibre at ~120, papyrus → white paper at ~240, warm dark → studio blue at ~390,
+  blue → slate at ~540) with a glowing morph front, and dissolves out over the arriving station. The camera stays on
+  its spline; the surface drifts and slowly zooms with the camera's travel. The carrier of each morph draws on top:
+  the pigment cloud (now a camera-space cloud so it is always framed, then lands as ink on the sheet), the
+  stroke→sort letters (camera-space carrier → press bed), the impact's light line (a white-hot front runs along the
+  telegraph wire from the f330 flash and cools to copper as the camera rides it to the key), and the wire coiling into
+  the handset cord. DOF is relaxed while a bridge covers the frame so the carriers stay crisp. Phone → smartphone
+  (rings → rounded rectangles) and smartphone → chat (screen push-in, same UI pixels) are unchanged.
+- **Return (1036–1104).** The phone body now dissolves together with the ragged screen reveal, and the smartphone
+  backdrop clears with it. A far, depth-tested fire-lit rock fill sits behind everything while the camera is still
+  behind the cave wall's plane, so the void around the ragged screen is never black and the cave never pops in.
+- **Hands.** One procedural skin shader with per-era looks (`HandLook`): ochre pigment clay (cave look; no 3D hand
+  appears in the cave era itself), terracotta with ink-stained fingertips (papyrus), ink-smudged with a strong rim
+  (press), cool skin with sheen 0.3 / roughness 0.55 and a warm thickness tint (telegraph, phone, smartphone).
+  Knuckle creases and pores are a bump function evaluated per fragment from the nearest joint (bind space), the
+  fingertip mask comes from the skin weights. Rim light is a fresnel term; a soft contact-shadow blob sits on the
+  surface under the palm. Fingers settle from a relaxed pose with a Remotion spring (damping 12) on entry and follow
+  pose blends with the same spring.
+- **Papyrus.** The lectern is replaced by a heavy dark-wood slab on a stone plinth; the sheet rests between two rolled
+  scroll ends (papyrus-textured cylinders with spiral end rings). Reed brush: tapered reed with nodes and a frayed,
+  ink-soaked fibre tip. Ink is glossy and lighter while wet and dries darker and matte over 20 frames.
+- **Press.** Warm key moved to the upper left (+40 %), stronger rim and a warm fill, more hemisphere/env light; threaded
+  iron screw (helix) riding the platen and turning with the lever; the forme sits in a bed of 114 instanced spacer
+  blocks with per-block height and rotation variation. The brayer pass, f330 flash and the "Hello." page are kept.
+- **Phone UI.** Lifted dark background (#17161E + violet glow) so the screen never reads as black; composer is a lit
+  card with larger type (name 23 pt, handle 20 pt, input/body 34 pt), audience chip and toolbar; the "..." reply
+  indicators are drawn inside the screen UI (the floating 3D bubbles were removed).
+- **Chat safe area.** The socket camera shows UI x ≈ 7–384 pt; every text element now sits in 34–356 pt (≥ 72 px at
+  1080), reply text 25 pt (≈ 72 px), header/bubble moved down inside the frame; the status bar fades before the push-in.
+- **Loop seam with grain.** Within 16 frames of the loop point the grain rotates (variance-preserving) into frame 0's
+  grain pattern, so the seam carries no grain change.
+- **Credit.** End card "Breeze × Opus 5.6" (U+00D7), Inter Medium, +2 % tracking, fades in 1208–1228 and out 1256–1272,
+  over the warm cave (the fire is no longer dimmed in the tail). Only the `*Credit` compositions have it.
+- **Vertical loop file.** Not requested in this pass; `out/hello-loop-9x16.mp4` is still produced from the vertical
+  credit render's first 1200 frames.

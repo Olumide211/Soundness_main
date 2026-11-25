@@ -66,7 +66,7 @@ export const T = {
   // credit tail
   creditFireStart: 1200, creditFireEnd: 1230,
   ruleStart: 1218, ruleEnd: 1236,
-  textStart: 1222, textEnd: 1240,
+  textStart: 1208, textEnd: 1228,
 } as const;
 
 /** light-rig crossfade windows (§9) */

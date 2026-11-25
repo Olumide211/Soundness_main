@@ -7,7 +7,7 @@ import {stationMatrix, toWorld} from '../../lib/stations';
 import {PAGE} from '../layout';
 import {PAGE_C} from '../morph/glyphToMorse';
 import {letterMorphs, letterWorld, SHEET_Q, SORT, sortFaceGeometry} from '../morph/strokeToSort';
-import {carrierAt} from '../../lib/camera';
+import {shotMatrix, camPoint} from '../../lib/camera';
 import {easeInOutCubic, easeInQuad, easeOutCubic, remap, smoothstep, clamp01, lerp} from '../../lib/ease';
 import {Hand, POSES} from '../hands/Hand';
 import {useBillboards, BillboardPrim} from '../particles/Billboards';
@@ -57,6 +57,7 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
     const morphMeshes = ms.map((_, i) => new THREE.Mesh(new THREE.BufferGeometry(), morphMats[i]));
     morphMeshes.forEach((m) => { m.frustumCulled = false; m.castShadow = true; });
     const faceMats = [0, 1, 2, 3, 4].map(() => sortFace.clone());
+    const sortBodies = [0, 1, 2, 3, 4].map(() => steel.clone());
     // page
     const pageGeo = new THREE.PlaneGeometry(PAGE.w, PAGE.h, 64, 64);
     const pageBase = (pageGeo.attributes.position.array as Float32Array).slice();
@@ -67,7 +68,26 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
     const paperT = texSet('papyrus_paper', PAGE.w / TILE.paper, PAGE.h / TILE.paper);
     const pageFront = new THREE.MeshPhysicalMaterial({color: '#cfc4b0', roughness: 0.9, normalMap: paperT.normal_gl, normalScale: new THREE.Vector2(0.3, 0.3), side: THREE.FrontSide, sheen: 0.2});
     const pageBack = new THREE.MeshPhysicalMaterial({map: pageTex, roughness: 0.85, bumpMap: bumpTex, bumpScale: 1.5, side: THREE.BackSide, sheen: 0.2});
-    return {wood, woodDark, steel, brass, sortFace, plastic, ms, faces, body, morphMeshes, morphMats, faceMats, pageGeo, pageBase, pc, pageTex, bc, bumpTex, pageFront, pageBack};
+    // iron screw with a cut thread (helix tube), carried by the platen
+    const iron = new THREE.MeshPhysicalMaterial({color: '#3b3d40', metalness: 0.85, roughness: 0.42, normalMap: steel.normalMap, roughnessMap: steel.roughnessMap});
+    const hp: THREE.Vector3[] = [];
+    for (let k = 0; k <= 56 * 24; k++) { const t = k / (56 * 24); hp.push(new THREE.Vector3(Math.cos(t * Math.PI * 2 * 56) * 0.0165, t * 0.68, Math.sin(t * Math.PI * 2 * 56) * 0.0165)); }
+    const helix = new THREE.CatmullRomCurve3(hp);
+    const threadGeo = new THREE.TubeGeometry(helix, 2400, 0.0028, 6, false);
+    // bed of furniture / spacer blocks around the forme (instanced, slight height + rotation variation)
+    const blockGeo = new RoundedBoxGeometry(0.0118, 1, 0.0118, 2, 0.0008);
+    const lead = new THREE.MeshPhysicalMaterial({color: '#6d6f72', metalness: 0.75, roughness: 0.5, normalMap: steel.normalMap});
+    const cells: THREE.Matrix4[] = [];
+    for (let row = 0; row < 3; row++) for (const sz of [-1, 1]) for (let k = 0; k < 19; k++) {
+      const x = -0.1125 + k * 0.0125, z = sz * (0.0245 + row * 0.0125);
+      const h = SORT.height - 0.004 + (hash(k * 7 + row * 3 + (sz > 0 ? 100 : 0), SEEDS.dust ^ 0x55) - 0.5) * 0.0016;
+      const ry = (hash(k * 5 + row * 11 + (sz > 0 ? 50 : 0), SEEDS.dust ^ 0x66) - 0.5) * THREE.MathUtils.degToRad(3);
+      cells.push(new THREE.Matrix4().compose(new THREE.Vector3(x, h / 2, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ry), new THREE.Vector3(1, h, 1)));
+    }
+    const blocks = new THREE.InstancedMesh(blockGeo, lead, cells.length);
+    cells.forEach((m, i) => blocks.setMatrixAt(i, m));
+    blocks.castShadow = blocks.receiveShadow = true;
+    return {iron, threadGeo, blocks, wood, woodDark, steel, brass, sortFace, plastic, ms, faces, body, morphMeshes, morphMats, faceMats, sortBodies, pageGeo, pageBase, pc, pageTex, bc, bumpTex, pageFront, pageBack};
   }, []);
 
   // impact specular flash (+40% for 2 f)
@@ -76,7 +96,8 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
   R.faceMats.forEach((m) => (m.envMapIntensity = flash));
 
   // ---------- stroke -> sort morph + flight ----------
-  const car = carrierAt(f, 14);
+  const CM = shotMatrix(f);
+  const top = f >= 224 && f <= 268; // above the hand-off bridge
   const sorts: React.ReactNode[] = [];
   for (let i = 0; i < 5; i++) {
     const land = landFrame(i);
@@ -86,15 +107,15 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
     let pos: THREE.Vector3, q: THREE.Quaternion;
     const p0 = letterWorld(R.ms[i]);
     const nrm = new THREE.Vector3(0, 0, 1).applyQuaternion(SHEET_Q);
-    const off = new THREE.Vector3((i - 2) * 0.045, 0, 0).applyQuaternion(PRESS_Q);
+    const car = camPoint(f, (i - 2) * 0.05, -0.005, 0.44, CM); // camera-space carrier (framed through the bridge)
     if (f < 248) {
       const lift = easeOutCubic(remap(f, 225 + 2 * i, 238 + 2 * i));
       const a = p0.clone().addScaledVector(nrm, 0.07 * lift);
       const s = easeInOutCubic(remap(f, 232 + 2 * i, 248));
-      pos = a.lerp(car.clone().add(off), s);
+      pos = a.lerp(car, s);
     } else {
       const t = easeInOutCubic(remap(f, 248, land));
-      const a = car.clone().add(off), b = slotW.clone().add(new THREE.Vector3(0, 0.22, 0)), c = slotW;
+      const a = car.clone(), b = slotW.clone().add(new THREE.Vector3(0, 0.22, 0)), c = slotW;
       pos = a.clone().multiplyScalar((1 - t) * (1 - t)).addScaledVector(b, 2 * t * (1 - t)).addScaledVector(c, t * t);
       // landing overshoot 1.5 mm then settle in 2 f
       if (f >= land) pos.y -= 0.0015 * (f < land + 1 ? 1 : Math.max(0, 1 - (f - land - 1) / 2));
@@ -113,7 +134,8 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
       m.position.copy(pos); m.quaternion.copy(q);
       R.morphMats[i].color.set('#1B120C').lerp(new THREE.Color('#8d9298'), mt);
       R.morphMats[i].metalness = mt; R.morphMats[i].roughness = lerp(0.5, 0.3, mt);
-      R.morphMats[i].transparent = sortA > 0; R.morphMats[i].opacity = 1 - sortA;
+      R.morphMats[i].transparent = sortA > 0 || top; R.morphMats[i].opacity = 1 - sortA; R.morphMats[i].depthTest = !top;
+      m.renderOrder = top ? 1000 : 0;
       sorts.push(<primitive key={'m' + i} object={m} />);
     }
     if (f >= 252) {
@@ -123,13 +145,14 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
       const fm = R.faceMats[i];
       fm.color.set('#ffffff').lerp(new THREE.Color('#141212'), inked * 0.92);
       fm.roughness = lerp(0.9, 0.18, inked); fm.metalness = lerp(1, 0.2, inked);
-      fm.transparent = sortA < 1; fm.opacity = sortA;
-      R.steel.transparent = false;
+      fm.transparent = sortA < 1 || top; fm.opacity = sortA; fm.depthTest = !top;
+      const bm = R.sortBodies[i];
+      bm.transparent = sortA < 1 || top; bm.opacity = sortA; bm.depthTest = !top; bm.envMapIntensity = R.steel.envMapIntensity;
       sorts.push(
         <group key={'s' + i} position={pos} quaternion={q}>
           {/* local: face plane z=0, body extends to -z */}
-          <mesh geometry={R.faces[i]} material={fm} castShadow position={[0, 0, -0.0002]} />
-          <mesh geometry={R.body} material={fm === R.faceMats[i] ? bodyMat(R, sortA) : R.steel} position={[0, 0, -SORT.relief - SORT.height / 2]} rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow />
+          <mesh geometry={R.faces[i]} material={fm} castShadow position={[0, 0, -0.0002]} renderOrder={top ? 1001 : 0} />
+          <mesh geometry={R.body} material={bm} renderOrder={top ? 1000 : 0} position={[0, 0, -SORT.relief - SORT.height / 2]} rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow />
         </group>,
       );
     }
@@ -178,8 +201,12 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
         <mesh geometry={useMemo(() => boxB(0.06, 0.64, 0.06), [])} material={R.wood} position={[-0.29, 0.28, -0.05]} castShadow receiveShadow />
         <mesh geometry={useMemo(() => boxB(0.06, 0.64, 0.06), [])} material={R.wood} position={[0.29, 0.28, -0.05]} castShadow receiveShadow />
         <mesh geometry={useMemo(() => boxB(0.72, 0.09, 0.09), [])} material={R.wood} position={[0, 0.62, -0.05]} castShadow />
-        {/* screw */}
-        <mesh material={R.steel} position={[0, (0.62 + pb + 0.05) / 2, 0]} castShadow><cylinderGeometry args={[0.016, 0.016, Math.max(0.01, 0.62 - pb - 0.05), 24]} /></mesh>
+        {/* threaded iron screw (rides with the platen, turns with the lever) */}
+        <group position={[0, pb + 0.05, 0]} rotation={[0, lev * 2, 0]}>
+          <mesh material={R.iron} position={[0, 0.34, 0]} castShadow><cylinderGeometry args={[0.0148, 0.0148, 0.68, 24]} /></mesh>
+          <mesh geometry={R.threadGeo} material={R.iron} castShadow />
+        </group>
+        <primitive object={R.blocks} />
         <mesh material={R.steel} position={pivot.toArray()} castShadow><cylinderGeometry args={[0.03, 0.03, 0.04, 32]} /></mesh>
         {/* platen with brass face */}
         <group position={[0, pb, 0]}>
@@ -210,7 +237,7 @@ export const Press: React.FC<{frame: number}> = ({frame: f}) => {
       {sorts}
       <ImpactDust frame={f} />
       {showHand && (
-        <Hand side="left" pose={POSES.grip} effector="middle-finger-phalanx-intermediate" target={gripT} fingerDir={toW(new THREE.Vector3(0, -1, 0).addScaledVector(perp, 0.5))} palmDir={toW(perp.clone().negate().add(new THREE.Vector3(0, -0.3, 0)))} frame={f} seed={3} />
+        <Hand side="left" pose={POSES.grip} effector="middle-finger-phalanx-intermediate" target={gripT} fingerDir={toW(new THREE.Vector3(0, -1, 0).addScaledVector(perp, 0.5))} palmDir={toW(perp.clone().negate().add(new THREE.Vector3(0, -0.3, 0)))} frame={f} seed={3} look="press" enterFrame={294} />
       )}
     </>
   );

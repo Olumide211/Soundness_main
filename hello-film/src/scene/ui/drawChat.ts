@@ -1,19 +1,22 @@
 import chat from '../../../public/hello-film-pack/data/chat_ui.json';
 import {UI, rr, font} from './common';
-import {drawPost, P as post} from './drawPost';
+import {drawPost, P as post, screenBg, LP, CARD_BODY_Y} from './drawPost';
 import {easeInOutCubic, remap, smoothstep, clamp01, lerp} from '../../lib/ease';
 import {hash, SEEDS} from '../../lib/rng';
 import {flicker} from '../../lib/noise';
 
 export const C = chat;
+/** safe area (FIX 6): the socket camera shows UI x ~7..384 pt; 72 px at 1080 = 25 pt -> keep text in 34..356 pt */
+export const SAFE = {x0: 34, x1: 356};
+const REPLY = {...chat.reply, x: SAFE.x0, maxW: SAFE.x1 - SAFE.x0, font: '400 25px Inter', lineHeight: 34};
 const TS = SEEDS.tokens;
 type Tok = {text: string; x: number; y: number; w: number; frame: number};
 let layout: Tok[] | null = null;
 function tokenLayout(ctx: CanvasRenderingContext2D): Tok[] {
   if (layout) return layout;
-  const r = chat.reply;
-  ctx.font = font(r.font);
-  const base1 = 222;
+  const r = REPLY;
+  ctx.font = r.font;
+  const base1 = 228;
   let x = r.x, line = 0;
   layout = r.tokens.map((t, i) => {
     let w = ctx.measureText(t).width;
@@ -86,34 +89,34 @@ export function tokenParticle(i: number, f: number, toks: Tok[]) {
 
 export function drawChat(ctx: CanvasRenderingContext2D, f: number, avatar: CanvasImageSource) {
   const m = easeInOutCubic(remap(f, 840, 862));
-  ctx.fillStyle = chat.screen.bg; ctx.fillRect(0, 0, UI.w, UI.h);
+  screenBg(ctx);
   // the other post UI fades
   if (m < 1) { ctx.save(); ctx.globalAlpha = 1 - m; drawPost(ctx, f, avatar, 0, true); ctx.restore(); }
   // header
   ctx.globalAlpha = m;
-  ctx.font = font(chat.header.font); ctx.fillStyle = chat.header.color; ctx.textAlign = 'center';
-  ctx.fillText(chat.header.title, UI.w / 2, 90);
+  ctx.font = '600 19px Inter'; ctx.fillStyle = chat.header.color; ctx.textAlign = 'center';
+  ctx.fillText(chat.header.title, UI.w / 2, 112);
   ctx.globalAlpha = 1;
   // CARD -> BUBBLE (x, y, w, h, radius interpolation)
-  const ub = chat.userBubble;
-  ctx.font = font(ub.font);
+  const ub = {...chat.userBubble, x2: SAFE.x1, padX: 16, padY: 11, y: 152};
+  ctx.font = '400 20px Inter';
   const tw = ctx.measureText(ub.text).width;
-  const bw = tw + ub.padX * 2, bh = 17 + ub.padY * 2 + 3;
-  const card = {x: 0, y: post.publishedPost.y - 10, w: UI.w, h: 140, r: 0};
+  const bw = tw + ub.padX * 2, bh = 20 + ub.padY * 2 + 3;
+  const card = {x: 12, y: post.publishedPost.y - 14, w: UI.w - 24, h: 178, r: 22};
   const bub = {x: ub.x2 - bw, y: ub.y - 10, w: bw, h: bh, r: ub.r};
   const R = {x: lerp(card.x, bub.x, m), y: lerp(card.y, bub.y, m), w: lerp(card.w, bub.w, m), h: lerp(card.h, bub.h, m), r: lerp(card.r, bub.r, m)};
   rr(ctx, R.x, R.y, R.w, R.h, R.r);
-  ctx.fillStyle = `rgba(28,28,34,${m})`; ctx.fill();
+  ctx.fillStyle = `rgb(${Math.round(lerp(29, 40, m))},${Math.round(lerp(29, 40, m))},${Math.round(lerp(37, 52, m))})`; ctx.fill();
   const dim = 1 - 0.7 * smoothstep(966, 1020, f);
-  const fs = lerp(22, 17, m);
+  const fs = lerp(34, 20, m);
   ctx.font = `400 ${fs}px Inter`; ctx.fillStyle = '#F4F4F6'; ctx.textAlign = 'left';
   ctx.globalAlpha = dim;
-  ctx.fillText(ub.text, lerp(68, bub.x + ub.padX, m), lerp(post.publishedPost.y + 52, bub.y + bh / 2 + 6, m));
+  ctx.fillText(ub.text, lerp(LP.nx, bub.x + ub.padX, m), lerp(CARD_BODY_Y, bub.y + bh / 2 + 7, m));
   // reply tokens
   const toks = tokenLayout(ctx);
-  const r = chat.reply;
-  ctx.font = font(r.font);
-  let lastX = r.x, lastY = 222;
+  const r = REPLY;
+  ctx.font = r.font;
+  let lastX = r.x, lastY = 228;
   for (const t of toks) {
     if (f < t.frame) break;
     const a = clamp01((f - t.frame) / r.tokenFadeFrames);
@@ -131,7 +134,7 @@ export function drawChat(ctx: CanvasRenderingContext2D, f: number, avatar: Canva
     ctx.save();
     ctx.shadowColor = `rgba(124,92,255,${cu.glowOpacity})`; ctx.shadowBlur = cu.glowPx;
     ctx.globalAlpha = 0.6 + 0.4 * Math.abs(Math.sin(f / 6));
-    rr(ctx, lastX + 3, lastY - 18, cu.w, cu.h, cu.r); ctx.fillStyle = cu.color; ctx.fill();
+    rr(ctx, lastX + 4, lastY - 21, cu.w + 1, cu.h + 4, cu.r); ctx.fillStyle = cu.color; ctx.fill();
     ctx.restore();
   }
   // orb + particles

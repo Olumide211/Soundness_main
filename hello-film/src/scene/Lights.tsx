@@ -17,7 +17,8 @@ export const CAL = Number((globalThis as any).__CAL ?? 0.12);
 type RA = {st: StationName; pos: [number, number, number]; look: [number, number, number]; w: number; h: number; color: string; I: number; era: string};
 const RECTS: Record<string, RA> = {
   papyrusKey: {st: 'papyrus', pos: [-0.42, 0.5, 0.42], look: [0, 0, 0], w: 0.8, h: 0.5, color: '#FFE9C4', I: 6, era: 'papyrus'},
-  pressRim: {st: 'press', pos: [0.05, 0.55, -0.7], look: [0, 0.05, 0], w: 0.9, h: 0.3, color: '#CFE8FF', I: 3, era: 'press'},
+  pressRim: {st: 'press', pos: [0.05, 0.55, -0.7], look: [0, 0.05, 0], w: 0.9, h: 0.3, color: '#E4F0FF', I: 9, era: 'press'},
+  pressFill: {st: 'press', pos: [0.6, 0.35, 0.7], look: [0, 0.1, 0], w: 0.6, h: 0.6, color: '#FFE2C0', I: 1.6, era: 'press'},
   telKey: {st: 'telegraph', pos: [0, 0.5, 0.05], look: [0, 0, 0], w: 0.6, h: 0.3, color: '#CFE8FF', I: 4, era: 'telegraph'},
   telRim: {st: 'telegraph', pos: [-0.42, 0.22, -0.45], look: [0, 0.02, 0], w: 0.5, h: 0.25, color: '#4C8DFF', I: 8, era: 'telegraph'},
   phoneTop: {st: 'phone', pos: [0, 0.62, 0.1], look: [0, 0, 0], w: 1.2, h: 0.6, color: '#EAF4FF', I: 5, era: 'phone'},
@@ -27,14 +28,14 @@ const RECTS: Record<string, RA> = {
   smRim: {st: 'smartphone', pos: [0.05, 0.05, -0.35], look: [0, 0, 0], w: 0.4, h: 0.4, color: '#7C5CFF', I: 4, era: 'smartphone'},
   smKey: {st: 'smartphone', pos: [-0.3, 0.32, 0.3], look: [0, 0, 0], w: 0.3, h: 0.3, color: '#FFFFFF', I: 2, era: 'smartphone'},
 };
-const ENV: Record<string, number> = {cave: 0.05, papyrus: 0.25, press: 0.5, telegraph: 0.6, phone: 0.8, smartphone: 1.0, chat: 1.0, ret: 0.05};
+const ENV: Record<string, number> = {cave: 0.05, papyrus: 0.35, press: 0.8, telegraph: 0.6, phone: 0.8, smartphone: 1.0, chat: 1.0, ret: 0.05};
 
 /** returns fire intensity multiplier (also used by the orb hand-over) */
 export function fireWeight(f: number, credit: boolean) {
   const w = eraWeights(f % 1200);
   let fw = w.cave + 0.15 * w.papyrus;
   if (f % 1200 >= 1040) fw = smoothstep(1040, 1150, f % 1200); // hand-over from the orb
-  if (credit && f >= 1200) fw *= 1 - 0.94 * easeInCubic(remap(f, 1200, 1230));
+  if (credit && f >= 1200) fw *= 1 - 0.3 * easeInCubic(remap(f, 1200, 1230)); // the end card sits on the warm cave
   return fw;
 }
 
@@ -61,7 +62,7 @@ export const Lights: React.FC<{credit: boolean}> = ({credit}) => {
       l.lookAt(toWorld(r.st, ...r.look));
       rects[k] = l;
     }
-    spot.position.copy(toWorld('press', 0.55, 1.1, 0.45));
+    spot.position.copy(toWorld('press', -0.6, 1.1, 0.5)); // warm key, upper left
     spot.target.position.copy(toWorld('press', 0, 0, 0));
     fill.position.copy(toWorld('cave', 0.7, -0.9, 0.8));
     papFill.position.copy(toWorld('papyrus', 0.5, -0.25, 0.45));
@@ -83,12 +84,12 @@ export const Lights: React.FC<{credit: boolean}> = ({credit}) => {
   L.fill.intensity = CAL * 12 * fw * (0.92 + 0.08 * flicker(f));
   L.papFill.intensity = CAL * 3 * w.papyrus;
   // hemisphere: cave sky/ground then press fill
-  L.hemi.intensity = 0.08 * (w.cave) + 0.04 * w.papyrus + 0.12 * w.press + 0.05 * w.telegraph;
+  L.hemi.intensity = 0.08 * (w.cave) + 0.04 * w.papyrus + 0.28 * w.press + 0.05 * w.telegraph;
   L.hemi.color.set('#3A1F12').lerp(new THREE.Color('#9AA4B0'), smoothstep(200, 260, f) * (1 - smoothstep(1040, 1150, f)));
   // press spot + impact lift
   let impact = 0;
   if (f === 330) impact = 0.15;
-  L.spot.intensity = CAL * 0.6 * 60 * w.press * (1 + impact);
+  L.spot.intensity = CAL * 0.85 * 60 * w.press * (1 + impact);
   for (const [k, r] of Object.entries(RECTS)) {
     const ew = (w as any)[r.era] as number;
     L.rects[k].intensity = r.I * ew;

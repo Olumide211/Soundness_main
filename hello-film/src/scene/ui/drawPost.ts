@@ -32,11 +32,12 @@ export function pressedKey(f: number): string | null {
 
 export function drawPost(ctx: CanvasRenderingContext2D, f: number, avatar: CanvasImageSource, fadeOthers = 0, skipCard = false) {
   const kb = post.keyboard;
-  ctx.fillStyle = post.screen.bg;
-  ctx.fillRect(0, 0, UI.w, UI.h);
+  screenBg(ctx);
   const keep = 1 - fadeOthers;
   ctx.globalAlpha = keep;
+  ctx.globalAlpha = keep * (1 - smoothstep(828, 844, f)); // leaves before the push-in would clip it
   statusBar(ctx);
+  ctx.globalAlpha = keep;
   const published = f >= post.publishedPost.appearFrame;
   // top bar
   const tb = post.topBar;
@@ -59,20 +60,31 @@ export function drawPost(ctx: CanvasRenderingContext2D, f: number, avatar: Canva
     const cA = published ? 1 - smoothstep(798, 806, f) : 1;
     ctx.globalAlpha = keep * cA;
     const c = post.composer;
-    ctx.drawImage(avatar, c.avatar.x, c.avatar.y, c.avatar.size, c.avatar.size);
+    // composer card: a lit panel so the screen never reads as an empty black area while typing
+    rr(ctx, 12, 108, UI.w - 24, 222, 22); ctx.fillStyle = '#1D1D25'; ctx.fill();
+    rr(ctx, 12, 108, UI.w - 24, 222, 22); ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.drawImage(avatar, LP.ax, LP.ay, LP.as, LP.as);
     ctx.textAlign = 'left';
-    ctx.font = font(c.name.font); ctx.fillStyle = c.name.color; ctx.fillText(c.name.text, c.name.x, c.name.y + 12);
-    ctx.font = font(c.handle.font); ctx.fillStyle = c.handle.color; ctx.fillText(c.handle.text, c.handle.x, c.handle.y + 12);
-    ctx.font = font(c.input.font);
-    if (typed.length === 0) { ctx.fillStyle = c.input.placeholderColor; ctx.fillText(c.input.placeholder, c.input.x, c.input.y + 24); }
-    ctx.fillStyle = c.input.color; ctx.fillText(typed, c.input.x, c.input.y + 24);
+    ctx.font = 'bold 23px Inter'; ctx.fillStyle = c.name.color; ctx.fillText(c.name.text, LP.nx, LP.ny);
+    const nw0 = ctx.measureText(c.name.text).width;
+    ctx.font = '400 20px Inter'; ctx.fillStyle = '#9AA0AA'; ctx.fillText(c.handle.text, LP.nx + nw0 + 8, LP.ny);
+    ctx.font = '400 34px Inter';
+    if (typed.length === 0) { ctx.fillStyle = '#6A707A'; ctx.fillText(c.input.placeholder, LP.ix, LP.iy); }
+    ctx.fillStyle = c.input.color; ctx.fillText(typed, LP.ix, LP.iy);
+    // toolbar row (media / poll / emoji / location) + audience chip, fills the composer
+    ctx.globalAlpha = keep * cA * 0.9;
+    rr(ctx, LP.ix, 272, 118, 34, 17); ctx.strokeStyle = '#7C5CFF'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '600 15px Inter'; ctx.fillStyle = '#A795FF'; ctx.fillText('Everyone', LP.ix + 18, 294);
+    for (let k = 0; k < 4; k++) { rr(ctx, 236 + k * 34, 278, 22, 22, 6); ctx.strokeStyle = '#7C5CFF'; ctx.lineWidth = 1.6; ctx.stroke(); }
+    ctx.globalAlpha = keep * cA;
     // caret: blinks every 16 f while idle, solid while typing
     const lastK = post.typingSchedule.keystrokes.filter((k) => f >= k.frame).pop();
     const idle = !lastK || f - lastK.frame > 6;
     const blinkOn = !idle || Math.floor((f - (lastK?.frame ?? 720)) / 8) % 2 === 0;
     if (blinkOn && f < 792) {
+      ctx.font = '400 34px Inter';
       const tw = ctx.measureText(typed).width;
-      ctx.fillStyle = c.input.caret.color; ctx.fillRect(c.input.x + tw + 1.5, c.input.y + 6, c.input.caret.w, c.input.caret.h);
+      ctx.fillStyle = c.input.caret.color; ctx.fillRect(LP.ix + tw + 2, LP.iy - 30, 3, 40);
     }
   }
   // keyboard (slides down 796-806)
@@ -120,11 +132,12 @@ export function drawCardContents(ctx: CanvasRenderingContext2D, f: number, avata
   const y = pp.y;
   if (!bodyOnly) {
     ctx.globalAlpha = base * keep;
-    ctx.drawImage(avatar, 16, y, 40, 40);
+    rr(ctx, 12, y - 14, UI.w - 24, 178, 22); ctx.fillStyle = '#1D1D25'; ctx.fill();
+    ctx.drawImage(avatar, LP.ax, y, LP.as, LP.as);
     ctx.textAlign = 'left';
-    ctx.font = font('Inter 700 15'); ctx.fillStyle = '#FFFFFF'; ctx.fillText(pp.name, 68, y + 16);
+    ctx.font = 'bold 23px Inter'; ctx.fillStyle = '#FFFFFF'; ctx.fillText(pp.name, LP.nx, y + 20);
     const nw = ctx.measureText(pp.name).width;
-    ctx.font = font('Inter 400 15'); ctx.fillStyle = '#8A8F98'; ctx.fillText(pp.handle, 68 + nw + 6, y + 16);
+    ctx.font = '400 20px Inter'; ctx.fillStyle = '#9AA0AA'; ctx.fillText(pp.handle, LP.nx + nw + 8, y + 20);
     // counts
     const sp = spring((f - post.publishedPost.countUp.startFrame) / 30, pp.countUp.spring.stiffness, pp.countUp.spring.damping, pp.countUp.spring.mass);
     const done = f >= pp.countUp.endFrame;
@@ -132,16 +145,43 @@ export function drawCardContents(ctx: CanvasRenderingContext2D, f: number, avata
       const liked = act.icon === 'like' && f >= 808;
       const pop = act.icon === 'like' ? 1 + 0.25 * Math.sin(Math.PI * clamp01((f - 808) / 8)) : 1;
       const col = liked ? '#FF4D6D' : '#8A8F98';
-      icon(ctx, act.icon, act.x - 50 + 10, pp.actionsY + 2, col, liked, pop);
+      icon(ctx, act.icon, act.x - 50 + 30, CARD_ACT_Y + 2, col, liked, pop * 1.2);
       const v = done ? act.to : act.to * Math.max(0, sp);
       const label = done && (act as any).display ? (act as any).display : fmtCount(v, act.to);
-      ctx.font = font('GeistMono 500 14'); ctx.fillStyle = col; ctx.textAlign = 'left';
+      ctx.font = '500 16px GeistMono'; ctx.fillStyle = col; ctx.textAlign = 'left';
       (ctx as any).fontVariantNumeric = 'tabular-nums';
-      ctx.fillText(f >= pp.countUp.startFrame ? label : '0', act.x - 50 + 24, pp.actionsY + 7);
+      ctx.fillText(f >= pp.countUp.startFrame ? label : '0', act.x - 50 + 46, CARD_ACT_Y + 8);
     }
-    ctx.fillStyle = '#1E1F24'; ctx.fillRect(0, pp.actionsY + 26, UI.w, 1);
   }
   ctx.globalAlpha = base;
-  ctx.font = font(pp.bodyFont); ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'left';
-  ctx.fillText(pp.body, 68, y + 52);
+  ctx.font = '400 34px Inter'; ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'left';
+  ctx.fillText(pp.body, LP.nx, CARD_BODY_Y);
+  // "..." reply-typing indicators live inside the UI (810-832): small pills rise from under the card and fade
+  if (!bodyOnly) drawReplyDots(ctx, f, base);
+}
+
+function drawReplyDots(ctx: CanvasRenderingContext2D, f: number, base: number) {
+  const sp = post.publishedPost.replyBubbles.spawnFrames;
+  sp.forEach((s0, i) => {
+    if (f < s0 || f > s0 + 22) return;
+    const t = (f - s0) / 22;
+    const x = 52 + 56 * i, y = 300 - 46 * easeOutCubic(t);
+    ctx.globalAlpha = base * clamp01(t * 6) * (1 - smoothstep(0.55, 1, t));
+    rr(ctx, x - 22, y - 13, 44, 26, 13); ctx.fillStyle = '#2A2A34'; ctx.fill();
+    ctx.fillStyle = '#B4B8C2';
+    for (let k = 0; k < 3; k++) { const b = 0.6 + 0.4 * Math.sin((f - s0) * 0.7 - k * 0.9); ctx.globalAlpha = base * clamp01(t * 6) * (1 - smoothstep(0.55, 1, t)) * b; ctx.beginPath(); ctx.arc(x - 10 + k * 10, y, 3, 0, Math.PI * 2); ctx.fill(); }
+  });
+  ctx.globalAlpha = base;
+}
+
+/** composer / card layout (pt): larger, phone-readable (FIX 5) */
+export const LP = {ax: 24, ay: 124, as: 54, nx: 90, ny: 148, ix: 90, iy: 204};
+export const CARD_BODY_Y = post.publishedPost.y + 80;
+export const CARD_ACT_Y = post.publishedPost.y + 134;
+/** lifted dark background with a soft violet glow (never near-black) */
+export function screenBg(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = '#17161E'; ctx.fillRect(0, 0, UI.w, UI.h);
+  const g = ctx.createRadialGradient(UI.w * 0.5, UI.h * 0.42, 10, UI.w * 0.5, UI.h * 0.42, UI.h * 0.7);
+  g.addColorStop(0, 'rgba(60,52,96,0.55)'); g.addColorStop(1, 'rgba(23,22,30,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, UI.w, UI.h);
 }

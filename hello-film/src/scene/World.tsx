@@ -1,3 +1,4 @@
+import {smoothstep} from '../lib/ease';
 import React, {useMemo} from 'react';
 import * as THREE from 'three';
 import {useThree} from '@react-three/fiber';
@@ -64,6 +65,7 @@ function nearCyc(k: StationName, cam: THREE.Vector3) {
 }
 /** cyclorama + soft floor disc for each station; the cave uses its own wall. */
 export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
+  const frame = useCurrentFrame() % 1200;
   const mats = useMemo(() => {
     const out: Record<string, {cyc: THREE.Material; floor: THREE.Material}> = {};
     for (const k of Object.keys(BACKDROP)) {
@@ -79,7 +81,8 @@ export const Backdrops: React.FC<{camPos: THREE.Vector3}> = ({camPos}) => {
     <>
       {(Object.keys(BACKDROP) as StationName[]).map((k) => {
         const b = BACKDROP[k];
-        const fade = k === 'cave' ? 0 : nearCyc(k, camPos);
+        // the smartphone backdrop clears with the ragged screen so the cave shows through it (return, 1040-1072)
+        const fade = k === 'cave' ? 0 : nearCyc(k, camPos) * (k === 'smartphone' && frame >= 1000 ? 1 - smoothstep(1036, 1070, frame) : 1);
         (mats[k].cyc as THREE.MeshStandardMaterial).opacity = fade;
         return (
           <StationRoot key={k} name={k}>

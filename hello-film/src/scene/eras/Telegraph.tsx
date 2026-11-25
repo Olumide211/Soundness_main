@@ -12,6 +12,7 @@ import {PEEL_MAX} from './Press';
 import {useBillboards, BillboardPrim} from '../particles/Billboards';
 import {hash} from '../../lib/rng';
 import {coilPoints, cordMaterialMix} from '../morph/wireToHelix';
+import {onTop} from '../Bridge';
 
 export const KEY_LEN = 0.15;
 type KeyRig = {group: THREE.Group; arm: THREE.Object3D; pivot: THREE.Vector3; knob: THREE.Vector3};
@@ -78,19 +79,22 @@ function buildKey(): KeyRig {
 function wireMaterial(len: number) {
   const ct = texSet('copper', 1 / TILE.metal, 0.02 / TILE.metal);
   const m = new THREE.MeshPhysicalMaterial({map: ct.albedo, normalMap: ct.normal_gl, roughnessMap: ct.roughness, metalness: 1, roughness: 0.3, color: new THREE.Color('#ffffff')});
-  const u = {uS: {value: new Float32Array(16)}, uL: {value: new Float32Array(16)}, uN: {value: 0}, uLen: {value: len}, uE: {value: new THREE.Color('#CFE8FF')}, uPlastic: {value: 0}};
+  const u = {uS: {value: new Float32Array(16)}, uL: {value: new Float32Array(16)}, uN: {value: 0}, uLen: {value: len}, uE: {value: new THREE.Color('#CFE8FF')}, uPlastic: {value: 0}, uHot: {value: 0}, uFront: {value: 0}};
   m.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, u);
     s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying float vS;').replace('#include <uv_vertex>', '#include <uv_vertex>\nvS = uv.x;');
     s.fragmentShader = s.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vS; uniform float uS[16]; uniform float uL[16]; uniform int uN; uniform float uLen; uniform vec3 uE; uniform float uPlastic;')
+      .replace('#include <common>', '#include <common>\nvarying float vS; uniform float uS[16]; uniform float uL[16]; uniform int uN; uniform float uLen; uniform vec3 uE; uniform float uPlastic; uniform float uHot; uniform float uFront;')
       .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.006), uPlastic);')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.0, uPlastic);')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.12, uPlastic);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 { float s = vS * uLen; float acc = 0.0;
   for (int i = 0; i < 16; i++) { if (i >= uN) break; float d = (s - uS[i]) / max(uL[i] * 0.5, 0.004); acc += exp(-d * d); }
-  totalEmissiveRadiance += uE * acc * 3.0 + vec3(1.0) * smoothstep(0.8, 1.0, acc) * 4.0; }`);
+  totalEmissiveRadiance += uE * acc * 3.0 + vec3(1.0) * smoothstep(0.8, 1.0, acc) * 4.0;
+  // light line left by the impact flash: a white-hot front runs along the wire, then cools to copper
+  float lit = smoothstep(uFront, uFront - 0.06, s);
+  totalEmissiveRadiance += vec3(1.0, 0.9, 0.78) * uHot * lit * (2.5 + 6.0 * exp(-pow((s - uFront) / 0.03, 2.0))); }`);
   };
   (m as any).userData.u = u;
   m.customProgramCacheKey = () => 'wirePulse';
@@ -134,6 +138,13 @@ export const Telegraph: React.FC<{frame: number}> = ({frame: f}) => {
     R.wireB.geometry = new THREE.TubeGeometry(curve, Math.min(9000, pts.length * 2), 0.0012 + 0.0006 * cordMaterialMix(f), 8, false);
   }
   wu.uPlastic.value = cordMaterialMix(f);
+  // wire A: the impact's light line (334 -> 400 front travel, cools by 424)
+  const au = (R.wireA.material as any).userData.u;
+  au.uHot.value = smoothstep(332, 338, f) * (1 - smoothstep(404, 424, f));
+  au.uFront.value = WIRE_A_LEN * (0.02 + 1.0 * easeInOutCubic(remap(f, 334, 400)));
+  onTop(R.wireA, f >= 372 && f <= 418);
+  onTop(R.wireB, f >= 524 && f <= 568);
+  R.caps.forEach((m) => onTop(m, f >= 372 && f <= 418, 1001));
 
   // ---- morse capsules: lift off page, glow, slide to the page edge, ride wire A, get absorbed ----
   const pageM = stationMatrix('press');
@@ -198,7 +209,7 @@ export const Telegraph: React.FC<{frame: number}> = ({frame: f}) => {
       {caps}
       <Sparks frame={f} />
       {f >= 406 && f <= 546 && (
-        <Hand side="right" pose={pose} effector="index-finger-tip" target={tipW} fingerDir={dirW(-0.75, -0.45, -0.35)} palmDir={dirW(0, -1, 0.15)} frame={f} seed={5} />
+        <Hand side="right" pose={pose} effector="index-finger-tip" target={tipW} fingerDir={dirW(-0.75, -0.45, -0.35)} palmDir={dirW(0, -1, 0.15)} frame={f} seed={5} look="cool" enterFrame={410} ground={{point: toWorld('telegraph', 0, 0, 0), normal: dirW(0, 1, 0)}} />
       )}
     </>
   );

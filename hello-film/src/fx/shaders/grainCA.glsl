@@ -40,6 +40,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   float w = 4.0 * L * (1.0 - L);
   vec2 px = floor(uv * uRes);
   float n = h12(px + vec2(uFrame * 17.0, uFrame * 31.0)) + h12(px * 1.37 + uFrame * 7.0) - 1.0;
+  // loop seam: within 16 f of the loop point the grain rotates (variance-preserving) into frame 0's grain,
+  // so frame 1199 -> frame 0 carries no grain change
+  float dLoop = min(uFrame, 1200.0 - uFrame);
+  float th = 1.5707963 * (1.0 - smoothstep(0.0, 16.0, dLoop));
+  float n0 = h12(px) + h12(px * 1.37) - 1.0;
+  n = cos(th) * n + sin(th) * n0;
   col += uGrain * 0.04 * w * n;
   outputColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
