@@ -1,0 +1,7 @@
+ffprobe hello-loop-1x1.mp4: 1080x1080 30/1 frames=1200 h264 yuv420p audio_streams=0 -> PASS
+ffprobe hello-1x1-credit.mp4: 1080x1080 30/1 frames=1275 h264 yuv420p audio_streams=0 -> PASS
+scene detection gt(scene,0.25) on hello-loop-1x1.mp4: 0 hits [] -> PASS
+  highest scene scores: f241=0.171, f240=0.126, f788=0.120, f243=0.115, f533=0.109, f570=0.104
+near-black (>60% px luma<0.06): 0 frames [] (max fraction 0.358 at f416) -> PASS
+loop seam mean|f1199-f0| = 2.605/255 (f1198->f1199 = 2.605) -> FAIL
+SOME CHECKS FAILED
