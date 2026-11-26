@@ -68,21 +68,6 @@ export const OneBall: React.FC<{ layout: LayoutName }> = ({ layout }) => {
       >
         balls: {count}
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          right: L.safe,
-          bottom: L.safe,
-          color: '#fff',
-          opacity: 0.4,
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 600,
-          fontSize: L.watermark.size,
-          lineHeight: 1,
-        }}
-      >
-        @BreezeOg1
-      </div>
       <Audio src={staticFile('audio/mix.wav')} />
     </AbsoluteFill>
   );
