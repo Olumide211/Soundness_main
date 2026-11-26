@@ -23,7 +23,7 @@ export const Scene: React.FC<HelloProps & {rawFrame: number}> = ({rawFrame, vert
   const f = rawFrame % 1200;
   const cam = shotCamera(rawFrame, vertical, credit);
   const screenMix = smoothstep(846, 866, f) * (1 - smoothstep(1036, 1080, f));
-  const exposure = credit && rawFrame >= 1200 ? 1 - 0.12 * easeInCubic(remap(rawFrame, 1200, 1230)) : 1;
+  const exposure = credit && rawFrame >= 1200 ? 1 - 0.04 * easeInCubic(remap(rawFrame, 1200, 1230)) : 1;
   let bokeh = bokehAt(f);
   if (f >= 1040) bokeh = 2.0 * smoothstep(1060, 1170, f);
   bokeh *= 1 - 0.9 * bridgeAlpha(f);
@@ -33,7 +33,7 @@ export const Scene: React.FC<HelloProps & {rawFrame: number}> = ({rawFrame, vert
       <CameraRig rawFrame={rawFrame} vertical={vertical} credit={credit} />
       <Lights credit={credit} />
       <Backdrops camPos={cam.pos} />
-      {mounted(f, MOUNT.cave) && <CaveWall frame={f} />}
+      {mounted(f, MOUNT.cave) && <CaveWall frame={f} rawFrame={rawFrame} credit={credit} vertical={vertical} />}
       {mounted(f, MOUNT.papyrus) && <Papyrus frame={f} />}
       {mounted(f, MOUNT.press) && <Press frame={f} />}
       {mounted(f, MOUNT.telegraph) && <Telegraph frame={f} />}

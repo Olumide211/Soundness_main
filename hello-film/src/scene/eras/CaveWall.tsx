@@ -4,6 +4,9 @@ import {getAssets, texSet, TILE} from '../../lib/assets';
 import {StationRoot} from '../World';
 import {PigmentData, PATCH} from '../particles/pigmentData';
 import {MOTIFS} from '../particles/pigmentData';
+import {shotCamera, cameraMatrix} from '../../lib/camera';
+import {remap, easeInOutSine, easeInOutCubic} from '../../lib/ease';
+import {CREDIT_TEXT} from '../../overlay/Credit';
 
 export const WALL_R = 6;
 export const WALL_W = 3.1, WALL_H = 4; // narrowed so the return camera passes the wall's edge instead of through it
@@ -28,12 +31,20 @@ export function makeCaveMaterial(pig: PigmentData) {
     uRust: {value: new THREE.Color('#B5652B')},
     uHandX: {value: new THREE.Vector2(HAND.cx - 0.2, HAND.cx + 0.2)},
     uSpec: {value: 1},
+    // credit tail: the end card is painted onto the rock (pale ochre / kaolin), projected from the held credit camera
+    uRefVP: {value: new THREE.Matrix4()},
+    uCredit: {value: null as THREE.Texture | null},
+    uCredX: {value: new THREE.Vector2(0, 1)},
+    uCredRev: {value: 0},
+    uCredA: {value: 0},
+    uKaolin: {value: new THREE.Color('#D8A56A')},
   };
   mat.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, uniforms);
     s.vertexShader = s.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vPatchM;')
-      .replace('#include <uv_vertex>', '#include <uv_vertex>\nvPatchM = position.xy;');
+      .replace('#include <common>', '#include <common>\nvarying vec2 vPatchM;\nuniform mat4 uRefVP;\nvarying vec4 vRefClip;')
+      .replace('#include <uv_vertex>', '#include <uv_vertex>\nvPatchM = position.xy;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvRefClip = uRefVP * modelMatrix * vec4(transformed, 1.0);');
     s.fragmentShader = s.fragmentShader
       .replace(
         '#include <common>',
@@ -41,6 +52,7 @@ export function makeCaveMaterial(pig: PigmentData) {
 varying vec2 vPatchM;
 uniform float uFrame; uniform sampler2D uMask; uniform sampler2D uTimes; uniform sampler2D uHeight;
 uniform vec3 uOchre; uniform vec3 uRust; uniform vec2 uHandX;
+varying vec4 vRefClip; uniform sampler2D uCredit; uniform vec2 uCredX; uniform float uCredRev; uniform float uCredA; uniform vec3 uKaolin;
 float pigAmt; float pigBand;
 float h21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
@@ -77,6 +89,18 @@ float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   pigBand = sweepOn * (1.0 - smoothstep(0.0, 0.125, abs(vPatchM.x - cx))) * smoothstep(0.02, 0.6, max(pm.g, pm.r)) * step(0.0, vPatchM.y);
   pig *= 1.0 - 0.18 * pigBand;
   diffuseColor.rgb = mix(diffuseColor.rgb, pig, pigAmt);
+  if (uCredA > 0.0) {
+    vec2 cuv = vRefClip.xy / vRefClip.w * 0.5 + 0.5;
+    float cin = step(0.0, cuv.x) * step(cuv.x, 1.0) * step(0.0, cuv.y) * step(cuv.y, 1.0);
+    float cm = texture2D(uCredit, clamp(cuv, 0.0, 1.0)).r * cin;
+    float cxn = (cuv.x - uCredX.x) / (uCredX.y - uCredX.x);
+    float rev = 1.0 - smoothstep(-0.03, 0.03, cxn - uCredRev + (n1 - 0.5) * 0.05); // brushed on left to right
+    float n2 = vnoise(vPatchM * 420.0);
+    float ce = smoothstep(0.3, 0.75, cm + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.25) * mix(0.4, 1.0, grainB) * rev * uCredA;
+    vec3 cp = uKaolin * (0.8 + 0.35 * n1);
+    diffuseColor.rgb = mix(diffuseColor.rgb, cp, ce * 0.85);
+    pigAmt = max(pigAmt, ce);
+  }
 }`,
       )
       .replace(
@@ -98,12 +122,47 @@ export function makeWallGeometry() {
   return g;
 }
 
-export const CaveWall: React.FC<{frame: number}> = ({frame}) => {
+/** the credit as a brush-lettered mask in the held credit camera's frame (square: bottom-left beside "hello"; vertical: under it) */
+function creditMask(vertical: boolean) {
+  const W = 1080, H = vertical ? 1920 : 1080;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d')!;
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const size = vertical ? 108 : 64;
+  g.font = `400 ${size}px CaveatBrush`;
+  const w = g.measureText(CREDIT_TEXT).width;
+  const x = vertical ? (W - w) / 2 : Math.max(60, 0.43 * W - w);
+  const y = vertical ? 0.865 * H : 0.84 * H;
+  g.filter = 'blur(1.2px)';
+  g.fillStyle = '#fff';
+  g.fillText(CREDIT_TEXT, x, y);
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.NoColorSpace;
+  t.needsUpdate = true;
+  return {t, x0: (x - 4) / W, x1: (x + w + 4) / W};
+}
+
+export const CaveWall: React.FC<{frame: number; rawFrame?: number; credit?: boolean; vertical?: boolean}> = ({frame, rawFrame = frame, credit = false, vertical = false}) => {
   const {geo, mat} = useMemo(() => {
     const pig = (getAssets() as any).pigment as PigmentData;
     return {geo: makeWallGeometry(), mat: makeCaveMaterial(pig)};
   }, []);
-  (mat as any).userData.u.uFrame.value = frame;
+  const u = (mat as any).userData.u;
+  u.uFrame.value = frame;
+  const cred = useMemo(() => {
+    if (!credit) return null;
+    const m = creditMask(vertical);
+    const c = shotCamera(1274, vertical, true); // the held end pose
+    const cam = new THREE.PerspectiveCamera(c.fov, vertical ? 1080 / 1920 : 1, 0.008, 40);
+    cam.updateProjectionMatrix();
+    const vp = cam.projectionMatrix.clone().multiply(cameraMatrix(c).invert());
+    return {...m, vp};
+  }, [credit, vertical]);
+  if (cred && rawFrame >= 1200) {
+    u.uCredit.value = cred.t; u.uRefVP.value.copy(cred.vp); u.uCredX.value.set(cred.x0, cred.x1);
+    u.uCredRev.value = 1.08 * easeInOutSine(remap(rawFrame, 1206, 1236)) - 0.04;
+    u.uCredA.value = 1 - easeInOutCubic(remap(rawFrame, 1258, 1273));
+  } else u.uCredA.value = 0;
   return (
     <StationRoot name="cave">
       <mesh geometry={geo} material={mat} receiveShadow={false} />

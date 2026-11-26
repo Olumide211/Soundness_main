@@ -35,7 +35,7 @@ export function fireWeight(f: number, credit: boolean) {
   const w = eraWeights(f % 1200);
   let fw = w.cave + 0.15 * w.papyrus;
   if (f % 1200 >= 1040) fw = smoothstep(1040, 1150, f % 1200); // hand-over from the orb
-  if (credit && f >= 1200) fw *= 1 - 0.3 * easeInCubic(remap(f, 1200, 1230)); // the end card sits on the warm cave
+  if (credit && f >= 1200) fw *= 1 - 0.1 * easeInCubic(remap(f, 1200, 1230)); // the end card is painted on the firelit cave
   return fw;
 }
 

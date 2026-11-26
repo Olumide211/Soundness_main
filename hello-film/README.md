@@ -20,7 +20,7 @@ the loop and pop checks. `debug:true` skips post-processing.
 | file | what |
 |---|---|
 | `src/Root.tsx` | the 4 compositions |
-| `src/Hello.tsx` | asset preload (`delayRender`), `<ThreeCanvas>`, 2D credit overlay |
+| `src/Hello.tsx` | asset preload (`delayRender`), `<ThreeCanvas>` |
 | `src/scene/Scene.tsx` | mounts every era by frame window, feeds the post chain |
 | `src/lib/timeline.ts` | every frame number as named constants |
 | `src/lib/camera.ts` | closed centripetal Catmull-Rom camera, monotone timing, FOV/focus, micro-drift, impact shake, carrier, vertical rules |
@@ -34,7 +34,7 @@ the loop and pop checks. `debug:true` skips post-processing.
 | `src/scene/morph/*` | stroke→sort, glyph→Morse, wire→helix, ring→superellipse |
 | `src/scene/ui/*` | Canvas2D drawers for the social post and chat UIs (1170×2532) |
 | `src/fx/PostFX.tsx`, `src/fx/shaders/*.glsl` | DOF, bloom, ACES + grain + CA + vignette; screen, flame shaders |
-| `src/overlay/Credit.tsx` | "Breeze × Opus 5.6" end card |
+| `src/overlay/Credit.tsx` | "Breeze × Opus 5.6" end-card text (painted onto the cave rock by `CaveWall.tsx`) |
 | `src/scene/Bridge.tsx` | era hand-off bridges (material dissolve surfaces) |
 | `scripts/check.mjs` | §14 checks: ffprobe, loop seam, pop/cut detector, determinism, forbidden-API scan |
 | `scripts/qa.py` | polish-pass checks: scene cuts, near-black frames, seam with grain, audio streams |

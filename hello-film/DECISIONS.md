@@ -120,3 +120,12 @@ build machine, with the choice made and why. "Prompt" = `PROMPT.md` (the v2 buil
 
 ### Loop seam encoding
 The rendered PNGs close the loop at 0.82/255 (f1199 vs f0), but CRF 14 compression noise on the film grain pushed the encoded seam to ~2.6/255. The loop files are encoded with x264 zones `q=6` on frames 0–24 and 1172–1199 (see `scripts/render.sh`), which brings the encoded seam to ~1.1/255 for a ~30 MB larger file. Final QA reports: `qa/report_sq.txt`, `qa/report_v.txt`.
+
+### Credit painted on the rock (review note)
+The end card was a clean Inter overlay floating over the cave; it now reads as part of the wall. "Breeze × Opus 5.6" is
+set in Caveat Brush (already in the pack, has U+00D7) on a canvas mask in the held credit camera's frame, projected onto
+the wall in its shader (`uCredit`/`uRefVP` in `CaveWall.tsx`) so it sticks to the rock. It is painted in an earthy pale
+ochre (#D8A56A), so it is distinct from the red-ochre "hello" and still legible; the edges break up with the rock's
+height and noise, and it is brushed on left to right over 1206–1236 and fades 1258–1273. Square: bottom-left, beside
+"hello"; vertical: centred under it. The tail's fire and exposure dims were reduced (0.3→0.1, 0.12→0.04) so the
+painting stays lit. The loop file is unchanged (frames < 1200 are identical).

@@ -6,7 +6,6 @@ import {loadAssets} from './lib/assets';
 import {loadAllFonts} from './fonts';
 import {SHOT} from './lib/shot';
 import {Scene} from './scene/Scene';
-import {Credit} from './overlay/Credit';
 
 export type HelloProps = {grain: boolean; debug: boolean; vertical: boolean; credit: boolean};
 
@@ -39,7 +38,6 @@ export const Hello: React.FC<HelloProps> = (props) => {
           <Scene rawFrame={frame} {...props} />
         </ThreeCanvas>
       )}
-      {ready && props.credit && frame >= 1200 && <Credit frame={frame} vertical={props.vertical} />}
     </AbsoluteFill>
   );
 };
