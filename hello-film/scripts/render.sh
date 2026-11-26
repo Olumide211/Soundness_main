@@ -5,9 +5,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 GL=${REMOTION_GL:-angle}; CONC=${CONC:-2}; WHAT=${1:-all}
-enc() { # in_pattern out start
-  ffmpeg -v error -y -framerate 30 -start_number "$3" -i "$1" -c:v libx264 -preset slow -crf 14 -pix_fmt yuv420p -r 30 -an -movflags +faststart "$2"
+enc() { # in_pattern out start [x264-params]
+  ffmpeg -v error -y -framerate 30 -start_number "$3" -i "$1" -c:v libx264 -preset slow -crf 14 ${4:+-x264-params "$4"} -pix_fmt yuv420p -r 30 -an -movflags +faststart "$2"
 }
+# loops: near-lossless zones on the first/last 24 frames so grain compression noise doesn't open the seam (< 2/255)
+SEAM='zones=0,24,q=6/1172,1199,q=6'
 one() { # comp tag
   local comp=$1 tag=$2
   mkdir -p out/seq_$tag out/seq_${tag}_credit out/seq_${tag}_all
@@ -17,12 +19,12 @@ one() { # comp tag
 }
 if [[ $WHAT == square || $WHAT == all ]]; then
   one HelloSquare sq
-  enc 'out/seq_sq/f%04d.png' out/hello-loop-1x1.mp4 0
+  enc 'out/seq_sq/f%04d.png' out/hello-loop-1x1.mp4 0 "$SEAM"
   enc 'out/seq_sq_all/f%04d.png' out/hello-1x1-credit.mp4 0
 fi
 if [[ $WHAT == vertical || $WHAT == all ]]; then
   one HelloVertical v
-  enc 'out/seq_v/f%04d.png' out/hello-loop-9x16.mp4 0
+  enc 'out/seq_v/f%04d.png' out/hello-loop-9x16.mp4 0 "$SEAM"
   enc 'out/seq_v_all/f%04d.png' out/hello-9x16-credit.mp4 0
 fi
 ls -la out/*.mp4

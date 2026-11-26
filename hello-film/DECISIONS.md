@@ -117,3 +117,6 @@ build machine, with the choice made and why. "Prompt" = `PROMPT.md` (the v2 buil
   over the warm cave (the fire is no longer dimmed in the tail). Only the `*Credit` compositions have it.
 - **Vertical loop file.** Not requested in this pass; `out/hello-loop-9x16.mp4` is still produced from the vertical
   credit render's first 1200 frames.
+
+### Loop seam encoding
+The rendered PNGs close the loop at 0.82/255 (f1199 vs f0), but CRF 14 compression noise on the film grain pushed the encoded seam to ~2.6/255. The loop files are encoded with x264 zones `q=6` on frames 0–24 and 1172–1199 (see `scripts/render.sh`), which brings the encoded seam to ~1.1/255 for a ~30 MB larger file. Final QA reports: `qa/report_sq.txt`, `qa/report_v.txt`.
