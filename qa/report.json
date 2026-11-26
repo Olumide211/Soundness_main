@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "name": "ffprobe 9x16",
+      "pass": true,
+      "detail": "h264 1080x1920 @60/1 frames=1560 dur=26.005s; audio streams=1 aac 48000Hz 2ch 317kbps"
+    },
+    {
+      "name": "loudness 9x16",
+      "pass": true,
+      "detail": "integrated -14.00 LUFS, true peak -1.90 dBTP"
+    },
+    {
+      "name": "no clipping 9x16",
+      "pass": true,
+      "detail": "sample peak -1.90 dBFS"
+    },
+    {
+      "name": "loop diff 9x16",
+      "pass": true,
+      "detail": "mean |frame1559 - frame0| = 1.477/255"
+    },
+    {
+      "name": "no clipped text 9x16",
+      "pass": true,
+      "detail": "brightest pixel in 40px frame border across QA stills: 14"
+    },
+    {
+      "name": "counter clear of ring 9x16",
+      "pass": true,
+      "detail": "ring+bloom bottom y=1402 < counter top y=1440; counter bottom 1510 <= 1830"
+    },
+    {
+      "name": "ffprobe 1x1",
+      "pass": true,
+      "detail": "h264 1080x1080 @60/1 frames=1560 dur=26.005s; audio streams=1 aac 48000Hz 2ch 317kbps"
+    },
+    {
+      "name": "loudness 1x1",
+      "pass": true,
+      "detail": "integrated -14.00 LUFS, true peak -1.90 dBTP"
+    },
+    {
+      "name": "no clipping 1x1",
+      "pass": true,
+      "detail": "sample peak -1.90 dBFS"
+    },
+    {
+      "name": "loop diff 1x1",
+      "pass": true,
+      "detail": "mean |frame1559 - frame0| = 1.456/255"
+    },
+    {
+      "name": "no clipped text 1x1",
+      "pass": true,
+      "detail": "brightest pixel in 40px frame border across QA stills: 12"
+    },
+    {
+      "name": "counter clear of ring 1x1",
+      "pass": true,
+      "detail": "ring+bloom bottom y=908 < counter top y=908; counter bottom 958 <= 990"
+    },
+    {
+      "name": "A/V sync (10 random notes)",
+      "pass": true,
+      "detail": "10/10 notes: white flash starts on the note frame and audio onset within 1 frame"
+    },
+    {
+      "name": "ball count curve",
+      "pass": true,
+      "detail": "6s: 11 vs 10 (10.0%), 12s: 56 vs 50 (12.0%), 18s: 221 vs 200 (10.5%), 22.5s: 1074 vs 1150 (-6.6%); visual fill @22.5s 94.3%"
+    },
+    {
+      "name": "balls stay inside ring",
+      "pass": true,
+      "detail": "max centre distance + radius = 425.17px, ring inner edge 425px"
+    },
+    {
+      "name": "note onsets per second",
+      "pass": true,
+      "detail": "max 14 onsets in any 1-second window (247 notes total)"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "one-ball",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "samples": "bash scripts/fetch-samples.sh",
+    "simulate": "tsx scripts/simulate.ts",
+    "mix": "tsx scripts/mix.ts",
+    "render": "bash scripts/render.sh",
+    "verify": "tsx scripts/verify.ts",
+    "build": "npm run simulate && npm run mix && npm run render && npm run verify",
+    "studio": "remotion studio"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "5.3.0",
+    "@fontsource/inter": "5.3.0",
+    "@remotion/cli": "4.0.547",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.547"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.11",
+    "@types/react": "19.3.3",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  }
+}
