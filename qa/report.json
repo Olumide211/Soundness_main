@@ -18,7 +18,7 @@
     {
       "name": "loop diff 9x16",
       "pass": true,
-      "detail": "mean |frame1559 - frame0| = 1.442/255"
+      "detail": "mean |frame1559 - frame0| = 1.458/255"
     },
     {
       "name": "no clipped text 9x16",
@@ -48,7 +48,7 @@
     {
       "name": "loop diff 1x1",
       "pass": true,
-      "detail": "mean |frame1559 - frame0| = 1.426/255"
+      "detail": "mean |frame1559 - frame0| = 1.456/255"
     },
     {
       "name": "no clipped text 1x1",

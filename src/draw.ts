@@ -197,12 +197,12 @@ function drawArms(ctx: CanvasRenderingContext2D, theta: number) {
     // body: brushed graphite (concentric hairlines)
     ctx.save();
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#24272d';
+    ctx.strokeStyle = '#8d939c';
     ctx.lineWidth = 2 * T;
     ctx.beginPath(); ctx.arc(arm.c[0], arm.c[1], A, arm.a0, arm.a1); ctx.stroke();
     ctx.lineCap = 'butt';
     for (let o = -T + 1.5, k = 0; o < T - 1; o += 1.6, k++) {
-      const l = 40 + ((k * 37) % 11) + (k % 3) * 3;
+      const l = 140 + ((k * 37) % 13) + (k % 3) * 5;
       ctx.strokeStyle = `rgb(${l},${l + 3},${l + 8})`;
       ctx.lineWidth = 1.1;
       ctx.beginPath(); ctx.arc(arm.c[0], arm.c[1], A + o, arm.a0 + 0.02, arm.a1 - 0.005); ctx.stroke();
@@ -224,7 +224,7 @@ function drawArms(ctx: CanvasRenderingContext2D, theta: number) {
     ctx.beginPath(); ctx.arc(arm.c[0], arm.c[1], A - T + 0.8, arm.a0 + 0.02, arm.a1); ctx.stroke();
     // rounded tip cap
     const tg = ctx.createRadialGradient(arm.tip[0] - 4, arm.tip[1] - 4, 1, arm.tip[0], arm.tip[1], T);
-    tg.addColorStop(0, '#6b717c'); tg.addColorStop(1, '#22252b');
+    tg.addColorStop(0, '#d4d8de'); tg.addColorStop(1, '#878d96');
     ctx.fillStyle = tg;
     ctx.beginPath(); ctx.arc(arm.tip[0], arm.tip[1], T, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = 'rgba(200,210,230,0.4)'; ctx.lineWidth = 1.2;
@@ -234,12 +234,12 @@ function drawArms(ctx: CanvasRenderingContext2D, theta: number) {
   // embossed "BreezeOg" along arm 0
   const text = 'BreezeOg';
   ctx.save();
-  ctx.font = '700 17px Inter';
+  ctx.font = '700 21px Inter';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const widths = [...text].map((ch) => ctx.measureText(ch).width + 1.2);
   const total = widths.reduce((a, b) => a + b, 0);
-  const mid = 1.63 * Math.PI; // local arc angle where the word is centred
+  const mid = 1.31 * Math.PI; // local arc angle where the word is centred (just past the gear, like an engraving)
   let s = -total / 2;
   const [acx, acy] = arms[0].c;
   for (let i = 0; i < text.length; i++) {
@@ -250,9 +250,9 @@ function drawArms(ctx: CanvasRenderingContext2D, theta: number) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(phi + Math.PI / 2);
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(text[i], 0.8, 0.8);
-    ctx.fillStyle = 'rgba(255,255,255,0.20)'; ctx.fillText(text[i], -0.7, -0.7);
-    ctx.fillStyle = '#2e323a'; ctx.fillText(text[i], 0, 0);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillText(text[i], 0.9, 0.9);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(text[i], -0.6, -0.6);
+    ctx.fillStyle = '#3a3e45'; ctx.fillText(text[i], 0, 0);
     ctx.restore();
   }
   ctx.restore();
