@@ -1,12 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AbsoluteFill, Audio, continueRender, delayRender, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Audio, continueRender, delayRender, staticFile, useCurrentFrame } from 'remotion';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/geist-mono/500.css';
 import { drawFrame, sim } from './draw';
 import { LAYOUTS, LayoutName } from './layout';
-
-const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 const Scene: React.FC<{ layout: LayoutName }> = ({ layout }) => {
   const L = LAYOUTS[layout];
@@ -50,27 +48,11 @@ export const OneBall: React.FC<{ layout: LayoutName }> = ({ layout }) => {
   const L = LAYOUTS[layout];
   const f = useCurrentFrame();
 
-  // "1 ball." — on from frame 0, fades out ~2.6-3.0 s, fades back in for the loop (25.0-25.6 s)
-  const titleOp = f < 1400 ? interpolate(f, [156, 180], [1, 0], clamp) : interpolate(f, [1500, 1536], [0, 1], clamp);
-  const titleY = f < 1400 ? 0 : interpolate(f, [1500, 1536], [14, 0], clamp);
-  const subOp = interpolate(f, [36, 60, 156, 180], [0, 1, 1, 0], clamp);
-  const subY = interpolate(f, [36, 60], [16, 0], clamp);
-  const qOp = interpolate(f, [1020, 1056, 1284, 1320], [0, 1, 1, 0], clamp);
-  const qY = interpolate(f, [1020, 1056], [18, 0], clamp);
   const count = sim.counts[f] ?? 1;
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#05050A' }}>
       <Scene layout={layout} />
-      <div style={{ ...textBase, top: L.title.top + titleY, fontSize: L.title.size, letterSpacing: -2, opacity: titleOp, lineHeight: 1.1 }}>
-        1 ball.
-      </div>
-      <div style={{ ...textBase, top: L.subtitle.top + subY, fontSize: L.subtitle.size, fontWeight: 600, opacity: subOp, color: 'rgba(255,255,255,0.88)', lineHeight: 1.2 }}>
-        every bounce makes another.
-      </div>
-      <div style={{ ...textBase, top: L.question.top + qY, fontSize: L.question.size, opacity: qOp, letterSpacing: -1, lineHeight: 1.2 }}>
-        will it fill the circle?
-      </div>
       <div
         style={{
           ...textBase,
