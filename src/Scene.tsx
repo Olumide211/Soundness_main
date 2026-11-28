@@ -117,9 +117,8 @@ const Grain: React.FC = () => {
 
 const EndText: React.FC = () => {
   const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const { height } = useVideoConfig();
   if (frame < 330) return null;
-  const tall = height / width > 1.5;
   const t = smoothstep(330, 345, frame);
   const y = (1 - t) * 10;
   return (
@@ -140,8 +139,7 @@ const EndText: React.FC = () => {
           opacity: t,
         }}
       >
-        <div style={{ fontWeight: 500, fontSize: tall ? 52 : 44, letterSpacing: "0.01em", opacity: 0.9 }}>made with code.</div>
-        <div style={{ fontWeight: 500, fontSize: 28, marginTop: tall ? 16 : 12, opacity: 0.6, letterSpacing: "0.02em" }}>Breeze × Opus 5.6</div>
+        <div style={{ fontWeight: 500, fontSize: 28, opacity: 0.6, letterSpacing: "0.02em" }}>Breeze × Opus 5.6</div>
       </div>
     </AbsoluteFill>
   );
