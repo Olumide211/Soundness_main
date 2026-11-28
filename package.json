@@ -1,0 +1,29 @@
+{
+  "name": "hot-orb-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hot orb vs 8 things — Remotion + React Three Fiber",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:9x16": "remotion render src/index.ts OrbTest9x16 out/orb-test-9x16.mp4 --muted",
+    "render:4x5": "remotion render src/index.ts OrbTest4x5 out/orb-test-4x5.mp4 --muted"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.4.0",
+    "@remotion/cli": "^4.0.547",
+    "@remotion/fonts": "^4.0.547",
+    "@remotion/three": "^4.0.547",
+    "postprocessing": "^6.37.8",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "^4.0.547",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.547",
+    "@remotion/renderer": "^4.0.547",
+    "@types/react": "^19.3.3",
+    "@types/three": "^0.180.0",
+    "typescript": "^7.0.2"
+  }
+}
