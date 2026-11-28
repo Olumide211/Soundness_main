@@ -15,7 +15,8 @@ import { FoldState, OP_COUNT, SHEET_H, SHEET_W } from "../timeline";
 
 export const NX = 96;
 export const NY = 136;
-export const THICKNESS = 0.6 / 210; // 0.6 mm on a 210 mm wide sheet
+export const THICKNESS = 0.25 / 210; // 0.25 mm on a 210 mm wide sheet
+export const MICRO = 1.5 / 210; // ±1.5 mm micro-bend
 
 const HH = SHEET_H / 2;
 const HW = SHEET_W / 2;
@@ -41,20 +42,21 @@ const wingDir = norm(0.12, -SHEET_H); // wing crease direction (nose -> tail)
 const wingTop = 0.05;
 
 export const OPS: Op[] = [
-  // 0: center crease (fold + open)
-  { ox: 0, oy: 0, ux: 1, uy: 0, r: 0.006, nz: 1 },
+  // 0: center crease (fold + open). Photo side up on the table: lifts toward +Z
+  { ox: 0, oy: 0, ux: 1, uy: 0, r: 0.003, nz: -1 },
+  // (the sheet is then turned over; all following folds lift toward -Z = up)
   // 1/2: top corners to the center crease
-  { ox: 0, oy: HH, ux: Math.SQRT1_2, uy: Math.SQRT1_2, r: 0.004, nz: 1 },
-  { ox: 0, oy: HH, ux: -Math.SQRT1_2, uy: Math.SQRT1_2, r: 0.004, nz: 1 },
+  { ox: 0, oy: HH, ux: Math.SQRT1_2, uy: Math.SQRT1_2, r: 0.0025, nz: 1 },
+  { ox: 0, oy: HH, ux: -Math.SQRT1_2, uy: Math.SQRT1_2, r: 0.0025, nz: 1 },
   // 3/4: new slanted edges to the center again (22.5° creases from the nose)
-  { ox: 0, oy: HH, ux: c225, uy: s225, r: 0.012, nz: 1 },
-  { ox: 0, oy: HH, ux: -c225, uy: s225, r: 0.012, nz: 1 },
+  { ox: 0, oy: HH, ux: c225, uy: s225, r: 0.0065, nz: 1 },
+  { ox: 0, oy: HH, ux: -c225, uy: s225, r: 0.0065, nz: 1 },
   // 5/6: wings (fold outward, back side ends up on top of the wings)
-  { ox: wingTop, oy: HH, ux: -wingDir[1], uy: wingDir[0], r: 0.006, nz: -1 },
-  { ox: -wingTop, oy: HH, ux: wingDir[1], uy: wingDir[0], r: 0.006, nz: -1 },
+  { ox: wingTop, oy: HH, ux: -wingDir[1], uy: wingDir[0], r: 0.004, nz: -1 },
+  { ox: -wingTop, oy: HH, ux: wingDir[1], uy: wingDir[0], r: 0.004, nz: -1 },
   // 7/8: fold the whole thing in half along the center (keel)
-  { ox: 0, oy: 0, ux: 1, uy: 0, r: 0.028, nz: 1, usePre: true },
-  { ox: 0, oy: 0, ux: -1, uy: 0, r: 0.028, nz: 1, usePre: true },
+  { ox: 0, oy: 0, ux: 1, uy: 0, r: 0.018, nz: 1, usePre: true },
+  { ox: 0, oy: 0, ux: -1, uy: 0, r: 0.018, nz: 1, usePre: true },
 ];
 if (OPS.length !== OP_COUNT) throw new Error("op count mismatch");
 // make sure the wing "u" axes point outward
@@ -121,20 +123,33 @@ function bend(op: Op, angle: number, curl: number, preU: number | null) {
   tmp.z = pw * op.nz;
 }
 
-const rippleAt = (x: number, y: number, f: number) =>
-  0.011 * Math.sin(2.3 * x + 1.7 * y + f * 0.23) +
-  0.007 * Math.sin(3.7 * y - 1.1 * x - f * 0.31 + 1.0) +
-  0.004 * Math.sin(6.1 * x + 5.3 * y + f * 0.47);
+/** smooth pseudo-noise in [-1, 1] */
+const sn = (x: number, y: number, z: number, p: number) =>
+  0.5 * Math.sin(6.3 * x + 2.1 * y + 4.7 * z + 1.3 + p) +
+  0.32 * Math.sin(3.1 * x - 5.4 * y + 1.9 * z + 0.4 + p * 1.7) +
+  0.18 * Math.sin(9.7 * x + 7.9 * y - 3.3 * z + 2.2 + p * 2.3);
+
+/**
+ * Micro-bend: a smooth displacement field evaluated on the *folded* position, so
+ * stacked layers move together and never intersect. Biased "up" (away from the
+ * surface the sheet rests on).
+ */
+export function microBend(v: THREE.Vector3, up: THREE.Vector3) {
+  const a = 0.5 + 0.5 * sn(v.x, v.y, v.z, 0);
+  const bx = sn(v.x, v.y, v.z, 3.1);
+  const by = sn(v.x, v.y, v.z, 5.7);
+  const bz = sn(v.x, v.y, v.z, 8.3);
+  v.x += MICRO * (up.x * a + 0.22 * bx);
+  v.y += MICRO * (up.y * a + 0.22 * by);
+  v.z += MICRO * (up.z * a + 0.22 * bz);
+  return v;
+}
 
 /** Transform a flat sheet point (x, y, depth) through the fold chain. */
-export function foldPoint(x: number, y: number, depth: number, st: FoldState, f: number, out: THREE.Vector3) {
+export function foldPoint(x: number, y: number, depth: number, st: FoldState, _f: number, out: THREE.Vector3) {
   tmp.x = x;
   tmp.y = y;
   tmp.z = depth;
-  if (st.ripple > 0) {
-    // keep ripple zero along the edges a little less to look like held paper in wind
-    tmp.z += st.ripple * rippleAt(x, y, f) * (0.35 + 0.65 * Math.min(1, Math.abs(y + HH) / 0.6));
-  }
   let preX = 0;
   for (let k = 0; k < OP_COUNT; k++) {
     if (k === 5) preX = tmp.x; // configuration after the four flat folds
@@ -149,7 +164,7 @@ export function foldPoint(x: number, y: number, depth: number, st: FoldState, f:
 
 export type PaperGeo = {
   geometry: THREE.BufferGeometry;
-  update: (st: FoldState, f: number) => void;
+  update: (st: FoldState, f: number, upLocal: THREE.Vector3) => void;
 };
 
 export function buildPaperGeometry(): PaperGeo {
@@ -243,9 +258,10 @@ export function buildPaperGeometry(): PaperGeo {
   geometry.addGroup(idxFront.length + idxBack.length, idxEdge.length, 2);
 
   const v = new THREE.Vector3();
-  const update = (st: FoldState, f: number) => {
+  const update = (st: FoldState, f: number, upLocal: THREE.Vector3) => {
     for (let i = 0; i < total; i++) {
       foldPoint(flatX[i], flatY[i], depth[i], st, f, v);
+      microBend(v, upLocal);
       pos[i * 3] = v.x;
       pos[i * 3 + 1] = v.y;
       pos[i * 3 + 2] = v.z;
@@ -260,18 +276,28 @@ export function buildPaperGeometry(): PaperGeo {
 // ---------------------------------------------------------------------------
 // Crease maps (in flat sheet space). One mask per fold, accumulated over time.
 // ---------------------------------------------------------------------------
-export function buildCreaseMasks(w: number, h: number, mirrored: boolean): HTMLCanvasElement[] {
-  const masks: HTMLCanvasElement[] = [];
-  const datas: ImageData[] = [];
-  for (let k = 0; k < OP_COUNT; k++) {
+export type CreaseMasks = { dark: HTMLCanvasElement[]; light: HTMLCanvasElement[] };
+export function buildCreaseMasks(w: number, h: number, mirrored: boolean): CreaseMasks {
+  const mk = () => {
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
-    masks.push(c);
-    datas.push(c.getContext("2d")!.createImageData(w, h));
+    return c;
+  };
+  const dark: HTMLCanvasElement[] = [];
+  const light: HTMLCanvasElement[] = [];
+  const dd: ImageData[] = [];
+  const ld: ImageData[] = [];
+  for (let k = 0; k < OP_COUNT; k++) {
+    dark.push(mk());
+    light.push(mk());
+    dd.push(dark[k].getContext("2d")!.createImageData(w, h));
+    ld.push(light[k].getContext("2d")!.createImageData(w, h));
   }
-  const sharp = 0.0017;
-  const soft = 0.011;
+  const core = 0.0017; // thin AO line
+  const soft = 0.007;
+  const ridgeOff = 0.0034; // highlight ridge just beside the crease
+  const ridgeW = 0.0013;
   for (let py = 0; py < h; py++) {
     for (let px = 0; px < w; px++) {
       let u0 = (px + 0.5) / w;
@@ -283,14 +309,18 @@ export function buildCreaseMasks(w: number, h: number, mirrored: boolean): HTMLC
         const op = OPS[k];
         const u = (x - op.ox) * op.ux + (y - op.oy) * op.uy;
         const d = Math.abs(u);
-        // valley lines: dark core + soft shading
-        const dark = 0.26 * Math.exp(-(d * d) / (sharp * sharp)) + 0.09 * Math.exp(-(d * d) / (soft * soft));
-        const val = Math.round(255 * (1 - dark));
-        const id = datas[k].data;
-        id[o] = val;
-        id[o + 1] = Math.round(255 * (1 - dark * 0.96));
-        id[o + 2] = Math.round(255 * (1 - dark * 0.9));
-        id[o + 3] = 255;
+        const ao = 0.2 * Math.exp(-(d * d) / (core * core)) + 0.06 * Math.exp(-(d * d) / (soft * soft));
+        const a = dd[k].data;
+        a[o] = Math.round(255 * (1 - ao));
+        a[o + 1] = Math.round(255 * (1 - ao * 0.97));
+        a[o + 2] = Math.round(255 * (1 - ao * 0.92));
+        a[o + 3] = 255;
+        const r = u - ridgeOff;
+        const hl = 0.26 * Math.exp(-(r * r) / (ridgeW * ridgeW));
+        const b = ld[k].data;
+        b[o] = b[o + 1] = Math.round(255 * hl);
+        b[o + 2] = Math.round(240 * hl);
+        b[o + 3] = 255;
         // flat folds reflect the moving side for the following creases
         if (k >= 1 && k <= 4 && u > 0) {
           x -= 2 * u * op.ux;
@@ -299,6 +329,9 @@ export function buildCreaseMasks(w: number, h: number, mirrored: boolean): HTMLC
       }
     }
   }
-  masks.forEach((c, k) => c.getContext("2d")!.putImageData(datas[k], 0, 0));
-  return masks;
+  for (let k = 0; k < OP_COUNT; k++) {
+    dark[k].getContext("2d")!.putImageData(dd[k], 0, 0);
+    light[k].getContext("2d")!.putImageData(ld[k], 0, 0);
+  }
+  return { dark, light };
 }

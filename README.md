@@ -1,8 +1,9 @@
 # PAPER PLANE
 
 A 12-second cinematic 3D piece built with Remotion + `@remotion/three` (React Three Fiber).
-A printed A4 sheet folds itself into a dart plane with real crease geometry, launches off a
-rooftop, glides over a procedural golden-hour city, lands on a ledge and unfolds again.
+A printed A4 sheet folds itself into a dart on a walnut table at the edge of a rooftop, launches
+off the table into a dusk city, swoops past the skyline, lands on a stone ledge, skids, unfolds and
+flips photo-side up while the camera rises to top-down.
 
 ## Outputs
 
@@ -10,29 +11,31 @@ rooftop, glides over a procedural golden-hour city, lands on a ledge and unfolds
 | --- | --- |
 | `out/paper-plane-4x5.mp4` | 1080×1350, 30 fps, 360 frames, H.264 CRF 16, no audio |
 | `out/paper-plane-9x16.mp4` | 1080×1920, 30 fps, 360 frames, H.264 CRF 16, no audio |
+| `out/qa/` | QA stills (f15, 90, 170, 200, 230, 265, 300, 340, 355) + edge-check strips |
 
-## Render
+## Render + QA
 
 ```bash
 npm install
-BX=/path/to/chrome-headless-shell   # optional, any Chromium works
 npx remotion render src/index.ts PaperPlane4x5  out/paper-plane-4x5.mp4  --muted --crf=16 --gl=swangle
 npx remotion render src/index.ts PaperPlane9x16 out/paper-plane-9x16.mp4 --muted --crf=16 --gl=swangle
-node scripts-stills.mjs PaperPlane4x5 qa 15 75 135 170 220 260 300 355   # QA stills
+npx tsx scripts/check-margins.ts            # paper vs 72 px safe margin, every frame, both formats
+npx tsx scripts/check-margins.ts 220        # + on-screen size of the BreezeOg wordmark
+./verify.sh                                 # audio, scene cuts, black frames, stills -> out/qa
 ```
-
-The front print is `public/paper.jpg` (cover-cropped). Fonts: Inter (bundled in `public/fonts`).
 
 ## How it works
 
-- `src/paper/folding.ts` – the sheet is a 96×136-segment plane (front + back face 0.6 mm apart,
-  plus an edge strip). Each fold is a crease line; vertices on the moving side are bent around a
-  small crease cylinder and then follow a curl, composed in folding order (center crease → corners →
-  edges → wings → half fold). No morph targets. Crease maps accumulate per fold and darken the print.
-- `src/timeline.ts` – fold timing (overshoot/settle easing), flight path (time-based Hermite
-  spline), banking from yaw rate, and a single continuous spherical camera rig with smoothing.
-- `src/world/*` – instanced procedural city (~15k buildings, procedural window shader with
-  random lit windows and sky reflections), landmark towers with blinking aviation lights, moving
-  car light trails, sky gradient + sun, noise-billboard clouds, height haze, and a procedural HDRI
-  (PMREM of the sky) for reflections.
-- `src/Scene.tsx` – lights, DOF, bloom, ACES tone mapping, vignette, film grain, end title.
+- `src/paper/folding.ts`: the sheet is a 96×136-segment plane (front + back face 0.25 mm apart,
+  plus an edge strip). Each fold is a crease line; vertices on the moving side bend around a small
+  crease cylinder and follow a curl, composed in folding order (center crease → [sheet turns over]
+  → corners → edges → half fold → wings). A ±1.5 mm micro-bend field is applied to the *folded*
+  positions so stacked layers never intersect. Crease maps add a thin AO line + highlight ridge.
+- `src/paper/textures.ts`: photo multiplied into the paper albedo at 92 % (grain shows through,
+  desaturated edges); back with the 4 % "BreezeOg" wordmark placed on the outer face of one wing.
+- `src/timeline.ts`: fold timing (ease-in-out + 2-frame overshoot), flight path, banking, landing
+  skid, end flip, and one continuous camera rig (35 mm lens) with smoothing.
+- `src/world/*`: instanced dusk city (districts, downtown skyline, window grids with flicker, river,
+  car-light points), sky gradient, far-only haze, walnut table / concrete decks / limestone ledge.
+- `src/Scene.tsx`: shadowed warm key light, DOF, bloom (windows + afterglow only), ACES, grain,
+  vignette, end titles.

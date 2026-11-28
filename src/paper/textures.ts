@@ -125,18 +125,30 @@ export function fiberNormalMap(size = 512) {
   ctx.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(2.5, 3.5);
+  tex.repeat.set(3, 4.2);
   tex.colorSpace = THREE.NoColorSpace;
   tex.anisotropy = 4;
   return tex;
 }
 
-/** Front: photo printed (cover-crop, centered) as ink on matte off-white paper. */
+/** Wordmark placement on the back face (sheet-width units from the back's bottom-right corner). */
+export const WORDMARK = { size: 0.04, right: 0.06, baseline: 0.075 };
+
+/**
+ * Front: photo printed INTO the paper. Paper albedo + fiber grain first, then the
+ * photo multiplied over it at 92 % so the grain shows through the ink. Edges are a
+ * touch desaturated like real ink bleeding into fibers.
+ */
 export function frontBase(img: HTMLImageElement, grain: HTMLCanvasElement) {
   const c = makeCanvas(TEX_W, TEX_H);
   const ctx = c.getContext("2d")!;
   ctx.fillStyle = PAPER_COLOR;
   ctx.fillRect(0, 0, TEX_W, TEX_H);
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 0.6;
+  ctx.drawImage(grain, 0, 0, TEX_W, TEX_H);
+  ctx.globalAlpha = 1;
+
   const ia = img.naturalWidth / img.naturalHeight;
   const ca = TEX_W / TEX_H;
   let sw = img.naturalWidth;
@@ -150,37 +162,51 @@ export function frontBase(img: HTMLImageElement, grain: HTMLCanvasElement) {
     sh = sw / ca;
     sy = (img.naturalHeight - sh) / 2;
   }
-  ctx.globalCompositeOperation = "multiply";
-  ctx.filter = "saturate(0.92) contrast(0.96) brightness(1.02)";
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, TEX_W, TEX_H);
-  ctx.filter = "none";
-  // ink sits in the paper: grain multiplies through the print
-  ctx.globalAlpha = 0.55;
-  ctx.drawImage(grain, 0, 0, TEX_W, TEX_H);
+  // print layer: slightly desaturated overall, more so towards the edges
+  const print = makeCanvas(TEX_W, TEX_H);
+  const pctx = print.getContext("2d")!;
+  pctx.filter = "saturate(0.93) contrast(0.97)";
+  pctx.drawImage(img, sx, sy, sw, sh, 0, 0, TEX_W, TEX_H);
+  const edge = makeCanvas(TEX_W, TEX_H);
+  const ectx = edge.getContext("2d")!;
+  ectx.filter = "saturate(0.55) contrast(0.95)";
+  ectx.drawImage(img, sx, sy, sw, sh, 0, 0, TEX_W, TEX_H);
+  ectx.filter = "none";
+  ectx.globalCompositeOperation = "destination-in";
+  const g = ectx.createRadialGradient(TEX_W / 2, TEX_H / 2, TEX_W * 0.38, TEX_W / 2, TEX_H / 2, TEX_H * 0.62);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.85)");
+  ectx.fillStyle = g;
+  ectx.fillRect(0, 0, TEX_W, TEX_H);
+  pctx.filter = "none";
+  pctx.drawImage(edge, 0, 0);
+
+  ctx.globalAlpha = 0.92;
+  ctx.drawImage(print, 0, 0);
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = "source-over";
   return c;
 }
 
-/** Back: plain warm paper with a small BreezeOg wordmark bottom-right. */
+/** Back: plain warm paper with a small BreezeOg wordmark bottom-right (lands on the right wing). */
 export function backBase(grain: HTMLCanvasElement) {
   const c = makeCanvas(TEX_W, TEX_H);
   const ctx = c.getContext("2d")!;
   ctx.fillStyle = PAPER_COLOR;
   ctx.fillRect(0, 0, TEX_W, TEX_H);
   ctx.globalCompositeOperation = "multiply";
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.6;
   ctx.drawImage(grain, 0, 0, TEX_W, TEX_H);
   ctx.globalAlpha = 1;
-  // wordmark: Inter SemiBold, #1A1A1A @ 85%, +4% tracking, ~6% of sheet width
-  const size = Math.round(TEX_W * 0.06);
+  // wordmark: Inter SemiBold, #1A1A1A @ 85 %, +4 % tracking, 4 % of sheet width
+  const size = Math.round(TEX_W * WORDMARK.size);
   ctx.font = `600 ${size}px "InterPaper", Inter, sans-serif`;
   (ctx as unknown as { letterSpacing: string }).letterSpacing = `${(size * 0.04).toFixed(2)}px`;
   ctx.textAlign = "right";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "rgba(26,26,26,0.85)";
-  const right = TEX_W - Math.round(TEX_W * 0.048);
-  const base = TEX_H - Math.round(TEX_W * 0.058);
+  const right = TEX_W - Math.round(TEX_W * WORDMARK.right);
+  const base = TEX_H - Math.round(TEX_W * WORDMARK.baseline);
   ctx.fillText("BreezeOg", right, base);
   ctx.globalCompositeOperation = "source-over";
   return c;

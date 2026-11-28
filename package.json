@@ -22,6 +22,7 @@
     "@types/node": "^26.6.11",
     "@types/react": "^19.3.3",
     "@types/three": "^0.187.0",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }

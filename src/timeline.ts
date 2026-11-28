@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 // ---------------------------------------------------------------------------
-// Generic easing helpers
+// Easing helpers
 // ---------------------------------------------------------------------------
 export const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -9,38 +9,20 @@ export const smoothstep = (a: number, b: number, x: number) => {
   const t = clamp((x - a) / (b - a));
   return t * t * (3 - 2 * t);
 };
-export const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+export const easeInOutCubic = (t: number) => {
+  const c = clamp(t);
+  return c < 0.5 ? 4 * c * c * c : 1 - Math.pow(-2 * c + 2, 3) / 2;
+};
 export const easeInOut = (t: number) => {
   const c = clamp(t);
   return c * c * c * (c * (c * 6 - 15) + 10);
 };
 
-/** Damped spring 0 -> 1 with overshoot. */
-const spring = (t: number, zeta = 0.42, omega = 11) => {
-  if (t <= 0) return 0;
-  const wd = omega * Math.sqrt(1 - zeta * zeta);
-  return 1 - Math.exp(-zeta * omega * t) * (Math.cos(wd * t) + ((zeta * omega) / wd) * Math.sin(wd * t));
-};
-/** Fold ease: accelerate in, overshoot and settle. */
-export const foldEase = (p: number, bounce = true) => {
-  const c = clamp(p);
-  // remap so spring has essentially settled at p = 1
-  const s = spring(easeInOutCubic(c) * 0.62 + c * 0.38, 0.45, 9.5);
-  const settled = c >= 1 ? 1 : s + (1 - s) * smoothstep(0.85, 1, c);
-  return bounce ? settled : Math.min(settled, 1);
-};
-/** For 180° folds the paper cannot pass through itself: reflect the overshoot (bounce back). */
-export const flatFoldEase = (p: number) => {
-  const v = foldEase(p);
-  return v > 1 ? 2 - v : v;
-};
-
 // ---------------------------------------------------------------------------
-// Hermite (non-uniform Catmull-Rom in time) splines
+// Hermite spline in time (non-uniform Catmull-Rom tangents)
 // ---------------------------------------------------------------------------
-export type Key<T extends number[]> = [number, T];
-export function hermite(keys: Key<number[]>[], t: number, zeroEnds = true): number[] {
+export type Key = [number, number[]];
+export function hermite(keys: Key[], t: number): number[] {
   const n = keys.length;
   if (t <= keys[0][0]) return keys[0][1].slice();
   if (t >= keys[n - 1][0]) return keys[n - 1][1].slice();
@@ -50,12 +32,7 @@ export function hermite(keys: Key<number[]>[], t: number, zeroEnds = true): numb
   const [t1, p1] = keys[i + 1];
   const dt = t1 - t0;
   const tangent = (k: number) => {
-    if (k <= 0 || k >= n - 1) {
-      if (zeroEnds) return keys[k][1].map(() => 0);
-      const a = keys[Math.max(0, k - 1)];
-      const b = keys[Math.min(n - 1, k + 1)];
-      return a[1].map((v, j) => (b[1][j] - v) / (b[0] - a[0]));
-    }
+    if (k <= 0 || k >= n - 1) return keys[k][1].map(() => 0);
     const a = keys[k - 1];
     const b = keys[k + 1];
     return a[1].map((v, j) => (b[1][j] - v) / (b[0] - a[0]));
@@ -73,82 +50,97 @@ export function hermite(keys: Key<number[]>[], t: number, zeroEnds = true): numb
 }
 
 // ---------------------------------------------------------------------------
-// World constants
+// World (1 unit = 210 mm, the sheet width)
 // ---------------------------------------------------------------------------
 export const FPS = 30;
 export const DURATION = 360;
 export const SHEET_W = 1;
-export const SHEET_H = Math.SQRT2; // A4 ratio
-export const START_POS = new THREE.Vector3(0, 305.2, 0);
-export const ROOF_A = { x0: -14, x1: 14, z0: -10, z1: 6, h: 300 };
-export const ROOF_B = { x0: 143, x1: 185, z0: -14, z1: 27, h: 244.2, parapetTop: 245.4 };
-export const LAND_POS = new THREE.Vector3(163.5, ROOF_B.parapetTop + 0.003, 26.6);
-export const STAND_POS = new THREE.Vector3(163.5, ROOF_B.parapetTop + SHEET_H / 2 + 0.02, 26.6);
+export const SHEET_H = Math.SQRT2; // A4
+export const HFOV = 2 * Math.atan(12 / 35); // 35 mm lens (24 mm side across the frame width)
+export const vfovFor = (aspect: number) => 2 * Math.atan(Math.tan(HFOV / 2) / aspect);
+export const CAM_NEAR = 0.4;
+export const CAM_FAR = 42000;
 
-/** Sun direction (towards the sun) and the dusk factor drift over time. */
+export const ROOF_A = { x0: -42, x1: 42, z0: -80, z1: 1.9, h: 520 };
+export const TABLE = { x0: -3.3, x1: 3.3, z0: -2.4, z1: 1.6, top: ROOF_A.h + 3.6, thick: 0.17 };
+export const SHEET_REST = 0.0022; // sheet origin above a surface
+export const TABLE_POS = new THREE.Vector3(0, TABLE.top + SHEET_REST, -0.3);
+export const LEDGE = { x0: 140, x1: 240, z0: 279.15, z1: 280.85, top: 470 };
+export const ROOF_B = { x0: 140, x1: 240, z0: 196, z1: 280.85, h: LEDGE.top - 4.5 };
+export const LAND_POS = new THREE.Vector3(185.8, LEDGE.top + SHEET_REST, 280);
+
+/** Sky sun (just below the horizon) + warm key light used for the paper. */
 export const sunState = (frame: number) => {
   const t = clamp(frame / DURATION);
-  const elev = THREE.MathUtils.degToRad(lerp(6.5, 3.4, t));
-  const az = Math.atan2(0.17, 1);
-  const dir = new THREE.Vector3(Math.sin(az) * Math.cos(elev), Math.sin(elev), Math.cos(az) * Math.cos(elev));
-  return { dir, dusk: lerp(0.0, 0.75, smoothstep(0, 1, t)) };
+  const az = THREE.MathUtils.degToRad(8);
+  const el = THREE.MathUtils.degToRad(lerp(-0.9, -2.0, t));
+  const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+  const kaz = THREE.MathUtils.degToRad(52);
+  const kel = THREE.MathUtils.degToRad(frame < 290 ? 17 : lerp(17, 30, smoothstep(290, 330, frame)));
+  const key = new THREE.Vector3(Math.sin(kaz) * Math.cos(kel), Math.sin(kel), Math.cos(kaz) * Math.cos(kel));
+  return { dir, key, dusk: lerp(0.15, 0.6, t) };
 };
 
 // ---------------------------------------------------------------------------
 // Flight path
 // ---------------------------------------------------------------------------
-export const FLIGHT_START = 190;
-export const LAND_FRAME = 317;
-const PATH_KEYS: Key<number[]>[] = [
-  [190, [0, 305.2, 0]],
-  [200, [0, 304.9, 6.5]],
-  [212, [0.8, 303.4, 29]],
-  [226, [6, 298.2, 67]],
-  [241, [30, 288.5, 119]],
-  [255, [72, 276.5, 151]],
-  [266, [110, 266, 150]],
-  [279, [143, 257, 119]],
-  [291, [159.5, 251, 75]],
-  [300, [162.6, 248.2, 50]],
-  [307, [163.3, 246.6, 36]],
-  [313, [163.5, 245.65, 28.7]],
-  [LAND_FRAME, [163.5, LAND_POS.y, LAND_POS.z]],
+export const LAUNCH = 175;
+export const TOUCHDOWN = 304;
+export const LANDED = 308;
+const YT = TABLE_POS.y;
+const YL = LAND_POS.y;
+const PATH_KEYS: Key[] = [
+  [LAUNCH, [0, YT, TABLE_POS.z]],
+  [180, [0, YT, 0.1]],
+  [184, [0, YT, 1.25]],
+  [188, [0, YT - 0.3, 3.2]],
+  [194, [0, YT - 2.1, 7.6]],
+  [202, [0, YT - 6.3, 17]],
+  [212, [0.4, YT - 12.5, 38]],
+  [226, [2.5, YT - 20.5, 80]],
+  [242, [9, YT - 28.5, 132]],
+  [256, [26, YT - 35.5, 182]],
+  [268, [55, YT - 41.5, 222]],
+  [280, [98, YT - 47, 256]],
+  [291, [140, YL + 3.0, 275]],
+  [299, [170, YL + 1.0, 279.6]],
+  [TOUCHDOWN, [182.4, YL, 280]],
+  [LANDED, [LAND_POS.x, YL, LAND_POS.z]],
 ];
 export const pathPos = (f: number) => {
-  const p = hermite(PATH_KEYS, clamp(f, FLIGHT_START, LAND_FRAME));
-  return new THREE.Vector3(p[0], p[1], p[2]);
+  const p = hermite(PATH_KEYS, clamp(f, LAUNCH, LANDED));
+  const v = new THREE.Vector3(p[0], p[1], p[2]);
+  if (v.z < TABLE.z1 + 0.05 && f < 200) v.y = Math.max(v.y, YT); // still sliding on the table
+  if (f > 295) v.y = Math.max(v.y, YL); // ledge contact
+  return v;
 };
 export const pathVel = (f: number) => pathPos(f + 0.5).sub(pathPos(f - 0.5));
 
-// Heading table (azimuth measured like the camera: 0 = +Z, +90 = +X), unwrapped
+// heading (azimuth: 0 = +Z, 90° = +X), unwrapped + smoothed
 const HEADING: number[] = [];
 (() => {
   let prev = 0;
   for (let i = 0; i <= DURATION + 20; i++) {
     let h = prev;
-    if (i > FLIGHT_START + 3 && i < LAND_FRAME) {
+    if (i > 186 && i < TOUCHDOWN) {
       const v = pathPos(i + 2).sub(pathPos(i - 2));
       if (v.x * v.x + v.z * v.z > 1e-4) {
         h = Math.atan2(v.x, v.z);
         while (h - prev > Math.PI) h -= 2 * Math.PI;
         while (h - prev < -Math.PI) h += 2 * Math.PI;
       }
-    } else if (i >= LAND_FRAME) {
-      h = Math.PI;
-    } else if (i <= FLIGHT_START + 3) {
-      h = 0;
-    }
+    } else if (i >= TOUCHDOWN) h = Math.PI / 2;
+    else h = 0;
     HEADING.push(h);
     prev = h;
   }
-  // smooth
   const sm = HEADING.slice();
   for (let i = 0; i < HEADING.length; i++) {
     let s = 0;
     let w = 0;
-    for (let k = -6; k <= 6; k++) {
+    for (let k = -7; k <= 7; k++) {
       const j = clamp(i + k, 0, HEADING.length - 1);
-      const g = Math.exp(-(k * k) / 18);
+      const g = Math.exp(-(k * k) / 24);
       s += HEADING[j] * g;
       w += g;
     }
@@ -163,237 +155,228 @@ export const headingAt = (f: number) => {
 };
 
 // ---------------------------------------------------------------------------
-// Paper transform (position + orientation of the local sheet frame)
-// local: sheet in XY, front (+Z) printed side, top = +Y.
-// as a plane: nose = +Y, plane-up = -Z, so local X = -right.
+// Paper transform. Local frame: sheet in XY, printed front = +Z, top = +Y.
+// As a plane: nose = +Y, plane-up = -Z.
 // ---------------------------------------------------------------------------
-const basisQuat = (F: THREE.Vector3, Up: THREE.Vector3) => {
+const UP = new THREE.Vector3(0, 1, 0);
+const basisPlane = (F: THREE.Vector3, Up: THREE.Vector3) => {
   const R = new THREE.Vector3().crossVectors(F, Up).normalize();
   const m = new THREE.Matrix4().makeBasis(R.clone().negate(), F, Up.clone().negate());
   return new THREE.Quaternion().setFromRotationMatrix(m);
 };
-const Q_SHEET_START = new THREE.Quaternion();
-const Q_PLANE_START = basisQuat(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
-const Q_SHEET_END = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const Q_PHOTO_UP = new THREE.Quaternion().setFromRotationMatrix(
+  new THREE.Matrix4().makeBasis(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0))
+);
+const Q_PLANE_TABLE = basisPlane(new THREE.Vector3(0, 0, 1), UP);
+const Q_PLANE_LAND = basisPlane(new THREE.Vector3(1, 0, 0), UP);
+export const FLIP1 = [57, 71] as const;
+export const FLIP2 = [329, 344] as const;
 
 const flightQuat = (f: number) => {
   const v = pathVel(f);
-  const F = v.lengthSq() > 1e-6 ? v.clone().normalize() : new THREE.Vector3(0, 0, 1);
-  if (f >= LAND_FRAME - 1) F.set(0, 0, -1);
-  // limit pitch, add a little nose-up attitude while gliding
-  const up0 = new THREE.Vector3(0, 1, 0);
-  const pitchAdd = THREE.MathUtils.degToRad(4 + 6 * smoothstep(300, 316, f));
-  const right0 = new THREE.Vector3().crossVectors(F, up0).normalize();
+  const F = v.lengthSq() > 1e-8 ? v.clone().normalize() : new THREE.Vector3(1, 0, 0);
+  // the plane slides level on the table, then the nose follows the trajectory
+  if (f < 184) F.set(0, 0, 1);
+  if (f >= TOUCHDOWN) F.set(1, 0, 0);
+  else if (f > 298) F.lerp(new THREE.Vector3(1, 0, 0), smoothstep(298, TOUCHDOWN, f)).normalize();
+  const right0 = new THREE.Vector3().crossVectors(F, UP).normalize();
+  const pitchAdd = THREE.MathUtils.degToRad(3.5) * smoothstep(190, 205, f) * (1 - smoothstep(296, 303, f));
   F.applyAxisAngle(right0, -pitchAdd).normalize();
-  const Up = up0.clone().sub(F.clone().multiplyScalar(F.dot(up0))).normalize();
-  // bank from yaw rate
-  const yawRate = (headingAt(f + 2) - headingAt(f - 2)) / 4; // rad / frame
-  const bank = clamp(-yawRate * 10, -0.5, 0.5) + 0.05 * Math.sin(f * 0.21);
+  const Up = UP.clone().sub(F.clone().multiplyScalar(F.dot(UP))).normalize();
+  const yawRate = (headingAt(f + 2) - headingAt(f - 2)) / 4;
+  const flying = smoothstep(186, 196, f) * (1 - smoothstep(298, 304, f));
+  const bank = (clamp(-yawRate * 11, -0.45, 0.45) + 0.06 * Math.sin(f * 0.19) + 0.03 * Math.sin(f * 0.43)) * flying;
   Up.applyAxisAngle(F, bank);
-  return basisQuat(F, Up);
+  return basisPlane(F, Up);
 };
 
 export const paperTransform = (f: number) => {
   const pos = new THREE.Vector3();
   const quat = new THREE.Quaternion();
-  if (f < 186) {
-    const bob = 0.018 * Math.sin(f * 0.11) + 0.008 * Math.sin(f * 0.27 + 1);
-    pos.copy(START_POS).add(new THREE.Vector3(0.01 * Math.sin(f * 0.07), bob, 0));
-    const sway = new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(0.035 * Math.sin(f * 0.09 + 0.4), 0.06 * Math.sin(f * 0.065), 0.025 * Math.sin(f * 0.08 + 2))
-    );
-    const turn = easeInOut(smoothstep(124, 180, f));
-    quat.copy(Q_SHEET_START).slerp(Q_PLANE_START, turn);
-    // nose tilts up while the finished plane hangs
-    const tilt = THREE.MathUtils.degToRad(11) * smoothstep(174, 186, f);
-    const right = new THREE.Vector3(-1, 0, 0);
-    const qTilt = new THREE.Quaternion().setFromAxisAngle(right, -tilt);
-    quat.premultiply(qTilt);
-    quat.premultiply(sway.slerp(new THREE.Quaternion(), turn * 0.6));
+  if (f < LAUNCH) {
+    pos.copy(TABLE_POS);
+    const p = easeInOut((f - FLIP1[0]) / (FLIP1[1] - FLIP1[0]));
+    pos.y += 0.64 * Math.sin(Math.PI * p);
+    const rot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * p);
+    quat.copy(Q_PHOTO_UP).premultiply(rot);
     return { pos, quat };
   }
-  if (f < LAND_FRAME) {
-    const pf = Math.max(f, FLIGHT_START);
-    pos.copy(pathPos(pf));
-    if (f < FLIGHT_START) {
-      pos.y += 0.018 * Math.sin(f * 0.11) + 0.008 * Math.sin(f * 0.27 + 1);
-    }
-    const qHang = Q_PLANE_START.clone().premultiply(
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(-1, 0, 0), -THREE.MathUtils.degToRad(11))
-    );
-    const qf = flightQuat(Math.max(pf, FLIGHT_START + 4));
-    const b = easeInOut(smoothstep(186, 200, f));
-    quat.copy(qHang).slerp(qf, b);
+  if (f < LANDED) {
+    pos.copy(pathPos(f));
+    quat.copy(flightQuat(f));
     return { pos, quat };
   }
-  // landed -> stands up while unfolding
-  const s = easeInOut(smoothstep(LAND_FRAME + 1, 343, f));
-  pos.copy(LAND_POS).lerp(STAND_POS, s);
-  pos.y += 0.06 * Math.sin(Math.PI * s); // lifts a little as it opens
-  const qLand = flightQuat(LAND_FRAME - 0.5);
-  quat.copy(qLand).slerp(Q_SHEET_END, s);
-  const sway = smoothstep(343, 352, f);
-  const swayQ = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler(0.02 * Math.sin(f * 0.1) * sway, 0.03 * Math.sin(f * 0.07 + 1) * sway, 0)
-  );
-  quat.premultiply(swayQ);
+  pos.copy(LAND_POS);
+  const p = easeInOut((f - FLIP2[0]) / (FLIP2[1] - FLIP2[0]));
+  // tiny settle bounce after the flip lands
+  const settle = f > FLIP2[1] ? 0.012 * Math.sin(Math.PI * clamp((f - FLIP2[1]) / 3)) : 0;
+  pos.y += 0.86 * Math.sin(Math.PI * p) + settle;
+  quat.copy(Q_PLANE_LAND).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * p));
   return { pos, quat };
 };
 
+/** 0..1 how much the plane is in fast flight (for motion trails). */
+export const flightAmount = (f: number) => smoothstep(186, 196, f) * (1 - smoothstep(294, 302, f));
+
 // ---------------------------------------------------------------------------
-// Fold state: angle (rad) + curl for each fold op
+// Fold state
 // ---------------------------------------------------------------------------
-export type FoldState = {
-  angles: number[]; // per op
-  curls: number[]; // per op, curvature of the moving flap
-  ripple: number;
-  creases: number[]; // crease visibility 0..1 per op
-};
+export type FoldState = { angles: number[]; curls: number[]; creases: number[] };
 // op order: 0 center, 1 cornerR, 2 cornerL, 3 edgeR, 4 edgeL, 5 wingR, 6 wingL, 7 bodyR, 8 bodyL
 export const OP_COUNT = 9;
 const D = THREE.MathUtils.degToRad;
 const PI = Math.PI;
 
-const foldPhase = (f: number, a: number, b: number) => clamp((f - a) / (b - a));
+/** ease-in-out to the target at b-2, then a tiny 2-frame overshoot that settles at b. */
+const foldTo = (f: number, a: number, b: number, target: number, over: number) => {
+  if (f <= a) return 0;
+  const main = b - 2;
+  if (f < main) return target * easeInOutCubic((f - a) / (main - a));
+  if (f < b) return target + over * Math.sin((Math.PI * (f - main)) / 2);
+  return target;
+};
+const liftCurl = (f: number, a: number, b: number, amt: number) => {
+  const p = clamp((f - a) / (b - 2 - a));
+  return f > a && f < b ? amt * Math.sin(Math.PI * p) : 0;
+};
+const openAmt = (f: number, a: number, b: number) => 1 - easeInOut((f - a) / (b - a)); // 1 folded -> 0 open
 
 export const foldState = (f: number): FoldState => {
   const angles = new Array(OP_COUNT).fill(0);
   const curls = new Array(OP_COUNT).fill(0);
   const creases = new Array(OP_COUNT).fill(0);
+  // memory of the creases flips sign whenever the sheet is turned over so it never digs into a surface
+  const s2 = 1 - 2 * easeInOut((f - FLIP2[0]) / (FLIP2[1] - FLIP2[0]));
+  const flying = flightAmount(f);
 
-  // unfold progress values (1 = folded, 0 = open)
-  const un = (a: number, b: number) => 1 - easeInOut(foldPhase(f, a, b));
-  const UN5 = un(317, 324);
-  const UN4 = un(322, 330);
-  const UN3 = un(328, 337);
-  const UN2 = un(334, 344);
-
-  // 0: half fold lengthwise and open again (f30-60)
+  // 0: half fold lengthwise (lifts up off the table) then open again
   {
-    const p = foldPhase(f, 30, 60);
-    const up = easeInOutCubic(clamp(p / 0.55));
-    const down = easeInOut(clamp((p - 0.55) / 0.45));
-    angles[0] = lerp(0, D(168), up) * (1 - down) + D(5) * down;
-    curls[0] = 0.9 * Math.sin(PI * clamp(p / 0.55)) - 0.6 * Math.sin(PI * clamp((p - 0.55) / 0.45));
-    creases[0] = smoothstep(0.35, 0.55, p);
+    let a: number;
+    if (f < 45) a = foldTo(f, 28, 44, D(170), D(3));
+    else a = lerp(D(170), D(4), easeInOut((f - 45) / 11));
+    if (f > 56) a = 0;
+    angles[0] = a;
+    curls[0] = liftCurl(f, 28, 44, 0.9) - (f > 45 && f < 56 ? 0.55 * Math.sin((Math.PI * (f - 45)) / 11) : 0);
+    creases[0] = smoothstep(36, 43, f);
   }
-  // 1,2: corners (f60-90), right leads slightly
-  for (const [k, a, b] of [
-    [1, 60, 86],
-    [2, 64, 90],
-  ] as const) {
-    const p = foldPhase(f, a, b);
-    const v = flatFoldEase(p);
-    angles[k] = PI * v * UN2 + D(7) * (1 - UN2);
-    if (p === 0) angles[k] = 0;
-    curls[k] = 1.5 * Math.sin(PI * clamp(p * 1.15)) - 0.9 * Math.sin(PI * (1 - UN2));
-    creases[k] = smoothstep(0.55, 0.85, p);
+  // 1,2 corners; 3,4 edges (180° flat folds: overshoot = tiny rebound)
+  const flat = [
+    [1, 72, 92, 330, 337],
+    [2, 75, 95, 330, 337],
+    [3, 97, 117, 322, 330],
+    [4, 100, 120, 322, 330],
+  ] as const;
+  for (const [k, a, b, ua, ub] of flat) {
+    const folded = foldTo(f, a, b, PI, -D(3.5));
+    const o = openAmt(f, ua, ub);
+    // only the corner creases keep a little memory (their lines are exact in the flat sheet)
+    const resid = k <= 2 ? D(3) * s2 : 0;
+    angles[k] = f < ua ? folded : PI * o + resid * (1 - o);
+    curls[k] = liftCurl(f, a, b, 1.35) - (f > ua && f < ub ? 0.9 * Math.sin((Math.PI * (f - ua)) / (ub - ua)) : 0);
+    creases[k] = smoothstep(a + 8, b - 2, f);
   }
-  // 3,4: edges to center (f90-120)
-  for (const [k, a, b] of [
-    [3, 90, 116],
-    [4, 94, 120],
-  ] as const) {
-    const p = foldPhase(f, a, b);
-    const v = flatFoldEase(p);
-    angles[k] = PI * v * UN3 + D(7) * (1 - UN3);
-    if (p === 0) angles[k] = 0;
-    curls[k] = 1.2 * Math.sin(PI * clamp(p * 1.15)) - 0.9 * Math.sin(PI * (1 - UN3));
-    creases[k] = smoothstep(0.55, 0.85, p);
-  }
-  // 5,6: wings (f145-175) + flutter in flight
-  const flight = smoothstep(192, 205, f) * (1 - smoothstep(309, 316, f));
-  for (const [k, a, b, ph] of [
-    [5, 145, 171, 0],
-    [6, 149, 175, 1.7],
-  ] as const) {
-    const p = foldPhase(f, a, b);
-    const target = D(82);
-    const v = foldEase(p);
-    const flutter = flight * (D(2.6) * Math.sin(f * 1.35 + ph) + D(1.4) * Math.sin(f * 2.9 + ph * 2));
-    angles[k] = (lerp(0, target, v) + flutter) * UN5 + D(4) * (1 - UN5);
-    if (p === 0) angles[k] = 0;
-    curls[k] =
-      0.9 * Math.sin(PI * clamp(p * 1.1)) +
-      flight * 0.22 * Math.sin(f * 1.7 + ph) -
-      0.8 * Math.sin(PI * (1 - UN5));
-    creases[k] = smoothstep(0.5, 0.85, p);
-  }
-  // 7,8: fold in half (f120-145)
+  // 7,8 fold in half (the body stands up on its keel)
   for (const k of [7, 8]) {
-    const p = foldPhase(f, 120, 145);
-    const v = foldEase(p);
-    const breathe = flight * D(1.2) * Math.sin(f * 0.9);
-    angles[k] = (lerp(0, D(86), v) + breathe) * UN4 + D(4) * (1 - UN4);
-    if (p === 0) angles[k] = 0;
-    curls[k] = 0.5 * Math.sin(PI * clamp(p * 1.1)) - 0.35 * Math.sin(PI * (1 - UN4));
-    creases[k] = smoothstep(0.5, 0.85, p);
+    const folded = foldTo(f, 122, 145, D(86), D(3));
+    const o = openAmt(f, 314, 323);
+    const resid = D(2.5) * s2;
+    const breathe = flying * D(1.0) * Math.sin(f * 0.9);
+    angles[k] = f < 314 ? folded + breathe : D(86) * o + resid * (1 - o);
+    curls[k] = liftCurl(f, 122, 145, 0.5) - (f > 314 && f < 323 ? 0.4 * Math.sin((Math.PI * (f - 314)) / 9) : 0);
+    creases[k] = smoothstep(130, 143, f);
   }
-  // wind ripple only while the sheet is flat
-  const ripple = 1 - smoothstep(26, 33, f) + smoothstep(344, 350, f) * 0.6;
-  return { angles, curls, ripple, creases };
+  // 5,6 wings + ±2° flutter in flight
+  for (const [k, a, b, ph] of [
+    [5, 148, 168, 0],
+    [6, 151, 171, 1.7],
+  ] as const) {
+    const folded = foldTo(f, a, b, D(82), D(3));
+    const flutter = flying * (D(1.4) * Math.sin(f * 1.35 + ph) + D(0.6) * Math.sin(f * 2.9 + ph * 2));
+    const o = openAmt(f, 309, 316);
+    angles[k] = f < 309 ? folded + flutter : D(82) * o;
+    curls[k] =
+      liftCurl(f, a, b, 0.8) + flying * 0.16 * Math.sin(f * 1.7 + ph) - (f > 309 && f < 316 ? 0.6 * Math.sin((Math.PI * (f - 309)) / 7) : 0);
+    creases[k] = smoothstep(a + 6, b - 2, f);
+  }
+  return { angles, curls, creases };
 };
 
 // ---------------------------------------------------------------------------
-// Camera rig: spherical offset around the paper in its heading frame
+// Camera: one continuous rig. Spherical offset around the paper in its heading
+// frame: [azimuth relative to heading (0 = in front, 180 = behind), elevation,
+// distance, nose lead, top-down framing shift]
 // ---------------------------------------------------------------------------
-// [frame, [azRelDeg, elevDeg, dist, lead]]
-const CAM_KEYS: Key<number[]>[] = [
-  [0, [-4, 3, 3.35, 0]],
-  [30, [6, 4, 3.25, 0]],
-  [60, [24, 7, 3.1, 0]],
-  [90, [62, 12, 3.0, 0]],
-  [118, [118, 18, 2.85, 0]],
-  [140, [158, 24, 2.7, 0]],
-  [168, [197, 32, 2.25, 0.05]],
-  [188, [200, 24, 2.3, 0.15]],
-  [204, [186, 14, 3.4, 0.4]],
-  [216, [192, 46, 2.05, 0.05]],
-  [228, [198, 38, 2.2, 0.2]],
-  [242, [205, 30, 2.4, 0.2]],
-  [254, [206, 30, 2.3, 0.25]],
-  [266, [186, 15, 3.0, 0.3]],
-  [280, [150, 9, 3.3, 0.2]],
-  [292, [102, 8, 3.5, 0.1]],
-  [304, [36, 9, 3.6, 0.05]],
-  [317, [4, 5, 3.6, 0]],
-  [345, [0, 2.5, 3.45, 0]],
-  [360, [0, 2.2, 3.32, 0]],
+const CAM_KEYS: Key[] = [
+  [0, [180, 56, 3.3, 0, 0]],
+  [28, [184, 55, 3.2, 0, 0]],
+  [55, [188, 53, 3.35, 0, 0]],
+  [64, [190, 54, 4.15, 0, 0]],
+  [75, [192, 52, 3.35, 0, 0]],
+  [96, [198, 49, 3.1, 0, 0]],
+  [120, [203, 46, 3.15, 0, 0]],
+  [145, [200, 38, 2.95, 0, 0]],
+  [166, [196, 33, 2.6, 0, 0]],
+  [178, [186, 26, 2.5, 0.1, 0]],
+  [190, [182, 30, 2.65, 0.2, 0]],
+  [205, [186, 40, 3.0, 0.15, 0]],
+  [214, [189, 50, 2.6, 0.08, 0]],
+  [220, [190, 55, 2.5, 0.05, 0]],
+  [226, [192, 50, 3.1, 0.03, 0]],
+  [236, [190, 10, 5.6, 0, 0]],
+  [246, [196, -5, 6.6, 0, 0]],
+  [256, [152, -4, 6.0, 0, 0]],
+  [267, [114, 3, 3.9, 0.1, 0]],
+  [279, [97, -2, 3.5, 0.1, 0]],
+  [292, [48, 9, 4.3, 0, 0]],
+  [304, [8, 17, 4.5, 0, 0.05]],
+  [318, [2, 30, 4.1, 0, 0.12]],
+  [334, [0, 62, 4.45, 0, 0.3]],
+  [341, [0, 80, 4.3, 0, 0.34]],
+  [350, [0, 89.4, 3.65, 0, 0.36]],
+  [360, [0, 89.8, 3.6, 0, 0.36]],
 ];
 
+const targetBase = (f: number) => {
+  if (f < LAUNCH) return TABLE_POS.clone();
+  if (f < LANDED) return pathPos(f);
+  return LAND_POS.clone();
+};
+
 export const cameraRaw = (f: number) => {
-  const [az, el, dist, lead] = hermite(CAM_KEYS, f);
-  const { pos, quat } = paperTransform(f);
-  const target = pos.clone();
-  // look slightly ahead of the plane along its nose
-  const nose = new THREE.Vector3(0, 1, 0).applyQuaternion(quat);
-  target.addScaledVector(nose, lead);
-  if (f >= LAND_FRAME) {
-    // frame the standing sheet (its center rises as it unfolds)
+  const [az, el, dist, lead, shift] = hermite(CAM_KEYS, f);
+  const target = targetBase(f);
+  if (lead !== 0 && f >= LAUNCH && f < LANDED) {
+    const { quat } = paperTransform(f);
+    target.addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(quat), lead);
   }
-  const heading = headingAt(f);
-  const a = heading + THREE.MathUtils.degToRad(az);
+  const a = headingAt(f) + THREE.MathUtils.degToRad(az);
   const e = THREE.MathUtils.degToRad(el);
-  const offset = new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)).multiplyScalar(dist);
-  return { position: target.clone().add(offset), target };
+  const horiz = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
+  target.addScaledVector(horiz, shift);
+  const offset = horiz.clone().multiplyScalar(Math.cos(e) * dist).add(new THREE.Vector3(0, Math.sin(e) * dist, 0));
+  // up: world up, turning into "away from the camera" as it goes top-down
+  const up = UP.clone().lerp(horiz.clone().negate(), smoothstep(55, 88, el)).normalize();
+  return { position: target.clone().add(offset), target, up };
 };
 
 export const cameraAt = (f: number) => {
-  // gaussian smoothing over neighbouring frames for a single continuous, damped move
   const pos = new THREE.Vector3();
   const tgt = new THREE.Vector3();
+  const up = new THREE.Vector3();
   let wsum = 0;
   for (let k = -5; k <= 5; k++) {
     const w = Math.exp(-(k * k) / 10);
     const c = cameraRaw(clamp(f + k * 0.8, 0, DURATION));
     pos.addScaledVector(c.position, w);
     tgt.addScaledVector(c.target, w);
+    up.addScaledVector(c.up, w);
     wsum += w;
   }
   pos.multiplyScalar(1 / wsum);
   tgt.multiplyScalar(1 / wsum);
-  // subtle handheld drift
-  pos.x += 0.006 * Math.sin(f * 0.13);
-  pos.y += 0.005 * Math.sin(f * 0.17 + 1.3);
-  return { position: pos, target: tgt };
+  up.normalize();
+  const hand = 1 - smoothstep(340, 350, f);
+  pos.x += 0.004 * Math.sin(f * 0.13) * hand;
+  pos.y += 0.003 * Math.sin(f * 0.17 + 1.3) * hand;
+  return { position: pos, target: tgt, up };
 };

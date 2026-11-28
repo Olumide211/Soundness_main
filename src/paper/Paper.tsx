@@ -1,26 +1,44 @@
 import React, { useMemo } from "react";
 import { useCurrentFrame } from "remotion";
 import * as THREE from "three";
-import { FLIGHT_START, foldState, LAND_FRAME, paperTransform, SHEET_H, smoothstep } from "../timeline";
-import { buildCreaseMasks, buildPaperGeometry, foldPoint } from "./folding";
+import { flightAmount, foldState, paperTransform, SHEET_H, sunState } from "../timeline";
+import { buildCreaseMasks, buildPaperGeometry, CreaseMasks, foldPoint } from "./folding";
 import { backBase, fiberNormalMap, frontBase, grainCanvas, TEX_H, TEX_W } from "./textures";
 
 type Props = { image: HTMLImageElement };
 
-const makeMat = (map: THREE.Texture | null, normalMap: THREE.Texture) =>
-  new THREE.MeshPhysicalMaterial({
+type TransUniforms = { uTransDir: { value: THREE.Vector3 } };
+
+const makeMat = (map: THREE.Texture | null, normalMap: THREE.Texture, trans: TransUniforms, amount: number) => {
+  const m = new THREE.MeshPhysicalMaterial({
     map,
-    color: map ? 0xffffff : 0xefe9de,
+    color: map ? 0xffffff : 0xece6da,
     roughness: 0.85,
     metalness: 0,
     normalMap,
-    normalScale: new THREE.Vector2(0.28, 0.28),
+    normalScale: new THREE.Vector2(0.16, 0.16),
     sheen: 0.3,
-    sheenRoughness: 0.85,
+    sheenRoughness: 0.8,
     sheenColor: new THREE.Color("#fff0dc"),
-    envMapIntensity: 0.75,
+    envMapIntensity: 0.55,
     side: THREE.FrontSide,
   });
+  // slight translucency: light hitting the other side glows through the sheet
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uTransDir = trans.uTransDir;
+    shader.uniforms.uTransAmt = { value: amount };
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform vec3 uTransDir;\nuniform float uTransAmt;")
+      .replace(
+        "#include <opaque_fragment>",
+        `float transl = pow(max(dot(-normal, uTransDir), 0.0), 1.4);
+        outgoingLight += diffuseColor.rgb * vec3(1.0, 0.70, 0.42) * transl * uTransAmt;
+        #include <opaque_fragment>`
+      );
+  };
+  m.customProgramCacheKey = () => `paper-trans-${amount}`;
+  return m;
+};
 
 export const Paper: React.FC<Props> = ({ image }) => {
   const frame = useCurrentFrame();
@@ -46,14 +64,40 @@ export const Paper: React.FC<Props> = ({ image }) => {
     const front = mk(front0);
     const back = mk(back0);
     const normal = fiberNormalMap();
-    const mats = [makeMat(front.t, normal), makeMat(back.t, normal), makeMat(null, normal)];
+    const trans: TransUniforms = { uTransDir: { value: new THREE.Vector3(0, 1, 0) } };
+    const mats = [makeMat(front.t, normal, trans, 0.22), makeMat(back.t, normal, trans, 0.3), makeMat(null, normal, trans, 0.2)];
     const mesh = new THREE.Mesh(geo.geometry, mats);
     mesh.frustumCulled = false;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    const keyWorld = new THREE.Vector3();
+    mesh.onBeforeRender = (_r, _s, camera) => {
+      trans.uTransDir.value.copy(keyWorld).transformDirection(camera.matrixWorldInverse);
+    };
     const group = new THREE.Group();
     group.add(mesh);
 
+    // faint motion-blur trail: ghost copies at sub-frame past positions
+    const ghostMats = (o: number) =>
+      [front.t, back.t, null].map(
+        (t) =>
+          new THREE.MeshBasicMaterial({
+            map: t,
+            color: new THREE.Color(0.42, 0.4, 0.42),
+            transparent: true,
+            opacity: o,
+            depthWrite: false,
+          })
+      );
+    const ghosts = [0.05, 0.03, 0.015].map((o) => {
+      const g = new THREE.Mesh(geo.geometry, ghostMats(o));
+      g.frustumCulled = false;
+      g.renderOrder = 2;
+      return { mesh: g, opacity: o };
+    });
+
     // wing-tip air streaks
-    const STREAK_N = 14;
+    const STREAK_N = 12;
     const streakGeo = new THREE.BufferGeometry();
     const sPos = new Float32Array(2 * 2 * STREAK_N * 3);
     const sAlpha = new Float32Array(2 * 2 * STREAK_N);
@@ -71,7 +115,7 @@ export const Paper: React.FC<Props> = ({ image }) => {
     const streakMat = new THREE.ShaderMaterial({
       uniforms: { uOpacity: { value: 0 } },
       vertexShader: `attribute float alpha; varying float vA; void main(){ vA = alpha * smoothstep(0.8, 1.8, distance(position, cameraPosition)); gl_Position = projectionMatrix * viewMatrix * vec4(position,1.0);} `,
-      fragmentShader: `uniform float uOpacity; varying float vA; void main(){ gl_FragColor = vec4(vec3(1.0,0.93,0.85)*1.2, vA*uOpacity);} `,
+      fragmentShader: `uniform float uOpacity; varying float vA; void main(){ gl_FragColor = vec4(vec3(1.0,0.93,0.85), vA*uOpacity);} `,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -79,31 +123,40 @@ export const Paper: React.FC<Props> = ({ image }) => {
     });
     const streaks = new THREE.Mesh(streakGeo, streakMat);
     streaks.frustumCulled = false;
-    return { geo, front, back, masksFront, masksBack, mats, mesh, group, streaks, sPos, sAlpha, STREAK_N };
+    return { geo, front, back, masksFront, masksBack, mesh, group, ghosts, streaks, sPos, sAlpha, STREAK_N, keyWorld };
   }, [image]);
 
   // ---- per-frame update (pure function of the frame)
   const st = foldState(frame);
-  data.geo.update(st, frame);
+  const { pos, quat } = paperTransform(frame);
+  const upLocal = new THREE.Vector3(0, 1, 0).applyQuaternion(quat.clone().invert());
+  data.geo.update(st, frame, upLocal);
+  data.keyWorld.copy(sunState(frame).key);
 
   const paint = (
     target: { c: HTMLCanvasElement; t: THREE.CanvasTexture; base: HTMLCanvasElement },
-    masks: HTMLCanvasElement[]
+    masks: CreaseMasks
   ) => {
     const ctx = target.c.getContext("2d")!;
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
     ctx.drawImage(target.base, 0, 0);
-    ctx.globalCompositeOperation = "multiply";
     // the center crease is made by both the first fold and the final half-fold
     const weights = st.creases.slice();
     weights[0] = Math.max(weights[0], weights[7], weights[8]);
     weights[7] = 0;
     weights[8] = 0;
+    ctx.globalCompositeOperation = "multiply";
     weights.forEach((w, k) => {
       if (w <= 0.001) return;
       ctx.globalAlpha = Math.min(1, w);
-      ctx.drawImage(masks[k], 0, 0, TEX_W, TEX_H);
+      ctx.drawImage(masks.dark[k], 0, 0, TEX_W, TEX_H);
+    });
+    ctx.globalCompositeOperation = "screen";
+    weights.forEach((w, k) => {
+      if (w <= 0.001) return;
+      ctx.globalAlpha = Math.min(1, w);
+      ctx.drawImage(masks.light[k], 0, 0, TEX_W, TEX_H);
     });
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
@@ -112,15 +165,21 @@ export const Paper: React.FC<Props> = ({ image }) => {
   paint(data.front, data.masksFront);
   paint(data.back, data.masksBack);
 
-  const { pos, quat } = paperTransform(frame);
   data.group.position.copy(pos);
   data.group.quaternion.copy(quat);
   data.group.updateMatrixWorld(true);
 
-  // streaks from the two trailing wing tips over recent frames
-  const flightAmt = smoothstep(FLIGHT_START + 6, FLIGHT_START + 16, frame) * (1 - smoothstep(LAND_FRAME - 16, LAND_FRAME - 4, frame));
-  (data.streaks.material as THREE.ShaderMaterial).uniforms.uOpacity.value = 0.32 * flightAmt;
-  if (flightAmt > 0) {
+  const fa = flightAmount(frame);
+  data.ghosts.forEach((g, i) => {
+    const tr = paperTransform(frame - (i + 1) * 0.22);
+    g.mesh.position.copy(tr.pos);
+    g.mesh.quaternion.copy(tr.quat);
+    g.mesh.visible = fa > 0.01;
+    (g.mesh.material as THREE.MeshBasicMaterial[]).forEach((m) => (m.opacity = g.opacity * fa));
+  });
+
+  (data.streaks.material as THREE.ShaderMaterial).uniforms.uOpacity.value = 0.22 * fa;
+  if (fa > 0) {
     const v = new THREE.Vector3();
     const tips: [number, number][] = [
       [0.5, -SHEET_H / 2],
@@ -129,11 +188,9 @@ export const Paper: React.FC<Props> = ({ image }) => {
     const local = tips.map(([x, y]) => foldPoint(x, y, 0, st, frame, new THREE.Vector3()));
     tips.forEach((_, s) => {
       for (let i = 0; i < data.STREAK_N; i++) {
-        const fPast = frame - i * 0.07;
-        const tr = paperTransform(fPast);
+        const tr = paperTransform(frame - i * 0.08);
         v.copy(local[s]).applyQuaternion(tr.quat).add(tr.pos);
-        // ribbon width perpendicular to motion, mostly vertical
-        const wdt = 0.0035 * (1 - i / data.STREAK_N);
+        const wdt = 0.003 * (1 - i / data.STREAK_N);
         const o = (s * data.STREAK_N + i) * 2;
         data.sPos.set([v.x, v.y + wdt, v.z], o * 3);
         data.sPos.set([v.x, v.y - wdt, v.z], (o + 1) * 3);
@@ -149,6 +206,9 @@ export const Paper: React.FC<Props> = ({ image }) => {
   return (
     <>
       <primitive object={data.group} />
+      {data.ghosts.map((g, i) => (
+        <primitive key={i} object={g.mesh} />
+      ))}
       <primitive object={data.streaks} />
     </>
   );
