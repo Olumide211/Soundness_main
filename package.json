@@ -1,0 +1,27 @@
+{
+  "name": "paper-plane",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.3.0",
+    "@react-three/postprocessing": "^3.0.4",
+    "@remotion/cli": "^4.0.547",
+    "@remotion/three": "^4.0.547",
+    "postprocessing": "^6.37.8",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "^4.0.547",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.547",
+    "@remotion/renderer": "^4.0.547",
+    "@types/node": "^26.6.11",
+    "@types/react": "^19.3.3",
+    "@types/three": "^0.187.0",
+    "typescript": "^7.0.2"
+  }
+}
