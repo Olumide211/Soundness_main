@@ -15,15 +15,15 @@ export function createSteel(refl: PlanarReflector): SceneObject & { refl: Planar
   const geo = new RoundedBoxGeometry(BW, BH, BD, 5, 0.32);
   geo.translate(0, BH / 2, 0);
   const brushed = makeBrushed(256);
-  brushed.repeat.set(2, 2);
+  brushed.repeat.set(5, 5);
   brushed.rotation = Math.PI / 2;
   const uniforms = {
     uHeat: { value: 0 }, uC: { value: new THREE.Vector2() },
     uReflTex: { value: refl.rt.texture }, uReflMat: { value: refl.textureMatrix },
   };
   const mat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#d2d6db'), metalness: 1, roughness: 0.3, roughnessMap: brushed, anisotropy: 0.55,
-    envMapIntensity: 2.6, clearcoat: 0.0,
+    color: new THREE.Color('#c3c8ce'), metalness: 0.8, roughness: 0.34, roughnessMap: brushed, anisotropy: 0.55,
+    envMapIntensity: 3.4, clearcoat: 0.0,
   });
   mat.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, uniforms);

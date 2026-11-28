@@ -104,7 +104,7 @@ export function orbState(frame: number, out = new THREE.Vector3()): OrbState {
     const xp = objX(i - 1) + OBJ[i - 1].cx;
     const y0 = orbYReact(i - 1, 100);
     const wy = easeOutCubic(clamp(tau / 11));
-    const y = lerp(y0, orbLocal(i, t), wy) + 3.0 * Math.sin(Math.PI * clamp(tau / 11));
+    const y = lerp(y0, orbLocal(i, t), wy) + 1.2 * Math.sin(Math.PI * clamp(tau / 11));
     out.set(lerp(xp, X, w), y, lerp(OBJ[i - 1].cz, OBJ[i].cz, w));
     return { pos: out, heat, jaw, lift, seg: i, t };
   }
@@ -114,7 +114,7 @@ export function orbState(frame: number, out = new THREE.Vector3()): OrbState {
     const xn = objX(i + 1) + OBJ[i + 1].cx;
     const y0 = orbYReact(i, 100);
     const wy = easeOutCubic(clamp(tau / 11));
-    const y = lerp(y0, hoverY(i + 1), wy) + 3.0 * Math.sin(Math.PI * clamp(tau / 11));
+    const y = lerp(y0, hoverY(i + 1), wy) + 1.2 * Math.sin(Math.PI * clamp(tau / 11));
     out.set(lerp(X, xn, w), y, lerp(OBJ[i].cz, OBJ[i + 1].cz, w));
     return { pos: out, heat, jaw, lift, seg: i, t };
   }
@@ -132,8 +132,9 @@ const AZ = (9 * Math.PI) / 180;
 function camSeg(i: number, t: number) {
   const o = OBJ[i];
   let D = lerp(o.D0, o.D1, easeInOutSine(clamp(t / 100)));
-  if (i === NSEG - 1 && t > 100) D = o.D1 - 3.5 * easeOutCubic(clamp((t - 100) / 200));
-  return { tx: objX(i) + o.cx * 0.4, ty: o.ty, tz: o.cz * 0.4, D, el: ((o.el ?? 17) * Math.PI) / 180 };
+  let ty = o.ty;
+  if (i === NSEG - 1 && t > 100) { D = o.D1 + 6 * easeInOutSine(clamp((t - 100) / 40)); ty = o.ty + 7.5 * easeInOutSine(clamp((t - 100) / 40)); }
+  return { tx: objX(i) + o.cx * 0.4, ty, tz: o.cz * 0.4, D, el: ((o.el ?? 17) * Math.PI) / 180 };
 }
 
 export type CamState = { pos: THREE.Vector3; target: THREE.Vector3; roll: number; pitch: number; yaw: number };
@@ -154,13 +155,13 @@ export function camState(frame: number, out?: CamState): CamState {
     const a = camSeg(i - 1, 100), b = camSeg(i, t);
     const w = whipW(tau);
     tx = lerp(a.tx, b.tx, w); ty = lerp(a.ty, b.ty, w); tz = lerp(a.tz, b.tz, w); D = lerp(a.D, b.D, w); el = lerp(a.el, b.el, w);
-    lead = whipV(tau) * (b.tx - a.tx) * 1.1;
+    lead = whipV(tau) * (b.tx - a.tx) * 0.0;
   } else if (t >= 100 && i < NSEG - 1) {
     const tau = t - 100;
     const a = camSeg(i, 100), b = camSeg(i + 1, 0);
     const w = whipW(tau);
     tx = lerp(a.tx, b.tx, w); ty = lerp(a.ty, b.ty, w); tz = lerp(a.tz, b.tz, w); D = lerp(a.D, b.D, w); el = lerp(a.el, b.el, w);
-    lead = whipV(tau) * (b.tx - a.tx) * 1.1;
+    lead = whipV(tau) * (b.tx - a.tx) * 0.0;
   } else {
     const c = camSeg(i, t);
     tx = c.tx; ty = c.ty; tz = c.tz; D = c.D; el = c.el;

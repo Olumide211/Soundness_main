@@ -27,8 +27,9 @@ function buildEnv(renderer: THREE.WebGLRenderer) {
   };
   add(70, 55, new THREE.Color(3.4, 3.4, 3.55), new THREE.Vector3(-48, 62, 34)); // big softbox top-left
   add(12, 80, new THREE.Color(2.6, 1.7, 1.0), new THREE.Vector3(55, 28, -55)); // warm rim strip back-right
-  add(60, 20, new THREE.Color(0.16, 0.16, 0.17), new THREE.Vector3(0, 8, 92)); // faint front fill
-  add(40, 30, new THREE.Color(0.5, 0.5, 0.52), new THREE.Vector3(60, 40, 30)); // small kicker right
+  add(70, 26, new THREE.Color(0.55, 0.55, 0.58), new THREE.Vector3(-10, 14, 92)); // front fill card
+  add(40, 40, new THREE.Color(0.9, 0.9, 0.95), new THREE.Vector3(75, 25, 30)); // kicker right
+  add(30, 40, new THREE.Color(0.6, 0.6, 0.65), new THREE.Vector3(-80, 15, -10)); // kicker left
   add(90, 50, new THREE.Color(0.9, 0.9, 0.95), new THREE.Vector3(0, 85, -30)); // overhead scrim
   const pm = new THREE.PMREMGenerator(renderer);
   const tex = pm.fromScene(env, 0.0).texture;

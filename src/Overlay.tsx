@@ -71,18 +71,20 @@ export const Overlay: React.FC<{ modelLabel: string }> = ({ modelLabel }) => {
       )}
       {ot >= 0 && frame < CREDIT + 10 && (
         <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', opacity: winO }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transform: `translateY(${tall ? -330 : -250}px) scale(${0.86 + 0.14 * winS})` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transform: `translateY(${tall ? -150 : -90}px) scale(${0.86 + 0.14 * winS})` }}>
             <div style={{ padding: '10px 50px 18px', borderRadius: 40, background: 'rgba(12,12,14,0.38)', backdropFilter: 'blur(14px)' }}>
               <div style={{ fontFamily: font, fontWeight: 700, fontSize: 120, color: '#fff', letterSpacing: -3, lineHeight: 1.15, textShadow: '0 6px 40px rgba(0,0,0,0.45)' }}>Steel wins.</div>
             </div>
             <div style={{ height: 18 }} />
-            <div style={{ fontFamily: font, fontWeight: 600, fontSize: 44, color: '#fff', opacity: 0.7, letterSpacing: 1 }}>{modelLabel}</div>
+            <div style={{ padding: '8px 28px', borderRadius: 999, background: 'rgba(12,12,14,0.38)', backdropFilter: 'blur(14px)' }}>
+              <div style={{ fontFamily: font, fontWeight: 600, fontSize: 44, color: '#fff', opacity: 0.7, letterSpacing: 1 }}>{modelLabel}</div>
+            </div>
           </div>
         </AbsoluteFill>
       )}
       {ct >= 0 && (
         <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', opacity: credO }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, transform: `translateY(${tall ? -330 : -250}px)` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '26px 44px', borderRadius: 28, background: 'rgba(12,12,14,0.42)', backdropFilter: 'blur(14px)', transform: `translateY(${tall ? -150 : -90}px)` }}>
             <div style={{ width: 64, height: 2, background: 'rgba(255,255,255,0.5)' }} />
             <div style={{ fontFamily: font, fontWeight: 600, fontSize: 36, color: '#fff', letterSpacing: 2 }}>Breeze × {modelLabel}</div>
             <div style={{ width: 64, height: 2, background: 'rgba(255,255,255,0.5)' }} />

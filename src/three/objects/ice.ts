@@ -23,7 +23,7 @@ export function createIce(): SceneObject {
         float dO = max(0.0, length(vWp - uOrb) - 3.0);
         float fr = pow(1.0 - saturate(abs(dot(normal, normalize(vViewPosition)))), 2.0);
         totalEmissiveRadiance += vec3(1.0, 0.42, 0.12) * (exp(-dO / 0.9) * 0.45 + exp(-dO / 3.0) * 0.06);
-        totalEmissiveRadiance += vec3(0.55, 0.62, 0.7) * fr * 0.06;`);
+        totalEmissiveRadiance += vec3(0.55, 0.62, 0.7) * (fr * 0.16 + 0.035);`);
   };
   mat.customProgramCacheKey = () => 'iceglow';
   const RES = 56;
